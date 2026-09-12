@@ -1,0 +1,3 @@
+artifacts/**
+!artifacts/.gitkeep
+scripts/node_modules/

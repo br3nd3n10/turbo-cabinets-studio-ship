@@ -1,0 +1,16 @@
+{
+  "name": "control-studio",
+  "version": "1.0.0",
+  "private": true,
+  "description": "V1 verification helper for Turbo Cabinets Studio",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "puppeteer-core": "^24.17.0"
+  }
+}
