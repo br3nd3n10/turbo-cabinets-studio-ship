@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Tap the walls</title>
+<link href="https://fonts.googleapis.com/css2?family=League+Spartan:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{--paper:#fff;--ink:#29372e;--muted:#747a70;--line:#d9ddd2}
+*{box-sizing:border-box}body{margin:0;font-family:'League Spartan',sans-serif;color:var(--ink);background:var(--paper)}
+header{padding:16px 22px;border-bottom:1px solid var(--line);font-size:12px;letter-spacing:.14em;text-transform:uppercase}
+.canvas{position:relative;margin:18px;aspect-ratio:16/9;background:linear-gradient(#f3efe6,#e4e0d4);border-radius:6px;overflow:hidden}
+.hint{position:absolute;left:16px;top:16px;background:#fffc;padding:8px 10px;font-size:13px}
+.wall{position:absolute;border:2px dashed var(--ink);background:#ffffff55;cursor:pointer;display:grid;place-items:end start;padding:8px;font-size:12px}
+.wall[aria-pressed=true]{background:#29372e22;border-style:solid}
+.range{left:8%;right:28%;top:58%;height:18%}
+.sink{right:10%;width:18%;top:22%;bottom:24%}
+.sheet{padding:8px 22px 40px}
+label{font-size:13px}
+input{min-height:48px;margin:8px 12px 0 0;font:inherit;padding:8px 10px;border:1px solid #cdd2c5;border-radius:5px}
+.looks{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0}
+button.chip{border:1px solid var(--line);background:#fff;border-radius:999px;padding:8px 14px;font:inherit;cursor:pointer}
+button.chip[aria-pressed=true]{background:var(--ink);color:#fff}
+.next{min-height:48px;padding:0 18px;border:0;background:var(--ink);color:#fff;border-radius:4px;font:inherit;cursor:pointer}
+</style>
+</head>
+<body>
+<header>Turbo Cabinets · Tap a wall to size it</header>
+<div class="canvas" role="img" aria-label="L shaped kitchen">
+ <div class="hint" id="hint">Tap the stove wall, then the sink wall.</div>
+ <button class="wall range" type="button" aria-pressed="false" data-wall="range">Stove wall</button>
+ <button class="wall sink" type="button" aria-pressed="false" data-wall="sink">Sink wall</button>
+</div>
+<div class="sheet">
+ <div id="editor" hidden>
+  <label id="field-label" for="length">How long is this wall?</label>
+  <input id="length" inputmode="decimal">
+  <button class="next" type="button" id="save-wall">Save this wall</button>
+ </div>
+ <p>Then pick a look</p>
+ <div class="looks">
+  <button class="chip" aria-pressed="true">White Shaker</button>
+  <button class="chip" aria-pressed="false">Green slim</button>
+  <button class="chip" aria-pressed="false">Navy</button>
+  <button class="chip" aria-pressed="false">Glass</button>
+ </div>
+ <button class="next" type="button" id="send" disabled>Send stove and sink walls to Turbo</button>
+ <p id="done" hidden>Both walls are sized. Turbo gets the picture plus those two numbers.</p>
+</div>
+<script>
+const sizes={range:'',sink:''};
+let active=null;
+const editor=document.querySelector('#editor');
+const input=document.querySelector('#length');
+const send=document.querySelector('#send');
+const hint=document.querySelector('#hint');
+const paint=()=>{
+  hint.textContent=sizes.range&&sizes.sink?`Stove ${sizes.range} in · Sink ${sizes.sink} in`:'Tap the stove wall, then the sink wall.';
+  send.disabled=!(sizes.range&&sizes.sink);
+};
+document.querySelectorAll('.wall').forEach(btn=>btn.onclick=()=>{
+  active=btn.dataset.wall;
+  document.querySelectorAll('.wall').forEach(w=>w.setAttribute('aria-pressed',String(w===btn)));
+  document.querySelector('#field-label').textContent=active==='range'?'How long is the stove wall?':'How long is the sink wall?';
+  input.value=sizes[active];
+  editor.hidden=false;
+  input.focus();
+});
+document.querySelector('#save-wall').onclick=()=>{
+  if(!active) return;
+  sizes[active]=input.value;
+  document.querySelector(`.wall[data-wall=${active}]`).textContent=`${active==='range'?'Stove':'Sink'} · ${sizes[active]} in`;
+  editor.hidden=true;
+  paint();
+};
+document.querySelectorAll('.chip').forEach(btn=>btn.onclick=()=>{
+  document.querySelectorAll('.chip').forEach(b=>b.setAttribute('aria-pressed',String(b===btn)));
+});
+document.querySelector('#send').onclick=()=>document.querySelector('#done').hidden=false;
+</script>
+</body>
+</html>
