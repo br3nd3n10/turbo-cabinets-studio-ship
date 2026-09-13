@@ -22,7 +22,6 @@ Preconditions:
 - Measure the L has been confirmed, or the confirm dialog is open.
 
 - **Hidden first.** Before Confirm, `#job-download` is disabled and not shown.
-- **Disabled first.** Before Confirm, `#job-download` is disabled.
 - **Download after confirm.** Choose **Save job ↓**. Run `control-studio browser click --selector "#job-download"`. A file named like `turbo-job-range-169.5_sink-128.25.json` appears in the isolated Chrome download directory.
 - **Read the file.** The JSON `walls` array contains `id` `range` and `sink` with the typed lengths. It has no price fields.
 - **Proof.** Copy the JSON to `.cursor/skills/verify-studio/artifacts/save-job/turbo-job.json` and screenshot the enabled button as `save-job.png`.
