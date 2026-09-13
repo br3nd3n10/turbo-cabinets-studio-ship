@@ -125,8 +125,17 @@ async function stop() {
   } catch {
     if (instance.chromePid) try { process.kill(instance.chromePid, 'SIGTERM'); } catch {}
   }
+  if (instance.chromePid) try { process.kill(instance.chromePid, 'SIGTERM'); } catch {}
   if (instance.serverPid) try { process.kill(instance.serverPid, 'SIGTERM'); } catch {}
-  await rm(STATE_DIR, { recursive: true, force: true });
+  for (let i = 0; i < 6; i++) {
+    try {
+      await rm(STATE_DIR, { recursive: true, force: true });
+      break;
+    } catch (err) {
+      if (i === 5) throw err;
+      await sleep(250);
+    }
+  }
   console.log(`stopped run=${instance.runId} artifacts=${ARTIFACTS}`);
 }
 
