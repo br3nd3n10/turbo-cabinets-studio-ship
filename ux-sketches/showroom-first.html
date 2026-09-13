@@ -9,28 +9,48 @@
 :root{--paper:#fff;--ink:#29372e;--muted:#747a70;--line:#d9ddd2}
 *{box-sizing:border-box}body{margin:0;font-family:'League Spartan',sans-serif;color:var(--ink);background:#f4f3ee}
 header{padding:18px 28px;background:#fff;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;font-size:12px;letter-spacing:.14em;text-transform:uppercase}
+header a{color:var(--muted);text-decoration:none}
+.intro{max-width:720px;margin:0 auto;padding:48px 24px 64px;background:#fff;min-height:calc(100dvh - 57px)}
+.intro h1{font-weight:400;font-size:40px;letter-spacing:-.02em;line-height:1.1;margin:0 0 12px}
+.intro .lead{color:var(--muted);line-height:1.55;margin:0 0 20px}
+.intro ol{padding-left:20px;line-height:1.5;margin:0 0 28px}
+.intro li{margin:0 0 8px}
 .stage{background:#e8e4da;min-height:42vh;display:grid;place-items:center;color:var(--muted)}
 .stage strong{color:var(--ink);font-size:22px;font-weight:400}
 aside{background:#fff;padding:28px;max-width:1100px;margin:0 auto}
-h1{font-weight:400;font-size:32px;letter-spacing:-.04em;margin:0 0 8px}
-.lead{color:var(--muted);margin:0 0 20px}
+h1{font-weight:400;font-size:32px;letter-spacing:-.02em;margin:0 0 8px}
+.lead{color:var(--muted);margin:0 0 20px;line-height:1.55}
 .row{display:flex;gap:10px;flex-wrap:wrap}
 button.card{border:1px solid var(--line);background:#fff;border-radius:8px;padding:12px 14px;font:inherit;cursor:pointer}
 button.card[aria-pressed=true]{border-color:var(--ink);font-weight:600}
 .cta{margin-top:22px;display:flex;gap:16px;align-items:center}
 .next{min-height:44px;padding:0 18px;border:0;background:var(--ink);color:#fff;border-radius:4px;font:inherit;cursor:pointer}
+.full{width:100%;min-height:48px}
 .quiet{background:none;border:0;color:var(--muted);font:inherit;cursor:pointer}
 dialog{border:1px solid var(--line);border-radius:8px;padding:28px;max-width:420px}
 label{display:block;margin:12px 0 4px;font-size:13px}
 input{width:100%;min-height:44px;font:inherit;padding:8px;border:1px solid #cdd2c5;border-radius:5px}
+.hidden{display:none}
 </style>
 </head>
 <body>
-<header><span>Turbo Cabinets</span><span>Showroom</span></header>
-<div class="stage"><div><strong id="caption">Shaker in Alpine White</strong><p>A kitchen picture would live here. Changing a look updates it.</p></div></div>
+<header><a href="index.html">All four ways</a><span>Showroom</span></header>
+<section class="intro" id="hello">
+ <h1>Find a look first. We’ll fit it to your room after.</h1>
+ <p class="lead">You are in a showroom, not on a tape measure yet. Play with doors and colors until the kitchen looks like yours. When you like it, we ask for two wall lengths so Turbo can model that look in your actual room.</p>
+ <ol>
+  <li>Pick a door style and a color. In the real app the picture would change.</li>
+  <li>When you are ready, add the stove wall and the sink wall.</li>
+  <li>Send that look plus those two numbers to the shop.</li>
+ </ol>
+ <p class="lead">This page is a click-through. The 3D kitchen is not here yet.</p>
+ <button class="next full" id="enter" type="button">Browse looks</button>
+</section>
+<div id="showroom" class="hidden">
+<div class="stage"><div><strong id="caption">Shaker in Alpine White</strong><p>A kitchen picture would live here. Changing a look updates it. That picture is the model you are choosing.</p></div></div>
 <aside>
  <h1>Find a look you like.</h1>
- <p class="lead">Play with doors and colors first. Room sizes come later, only when you want Turbo to build it.</p>
+ <p class="lead">Play with doors and colors first. Room sizes come later, only when you want Turbo to build it in your space.</p>
  <p>Doors</p>
  <div class="row" id="styles">
   <button class="card" aria-pressed="true">Shaker</button>
@@ -46,12 +66,13 @@ input{width:100%;min-height:44px;font:inherit;padding:8px;border:1px solid #cdd2
  </div>
  <div class="cta">
   <button class="next" id="ready" type="button">I like this. Add my room sizes</button>
-  <button class="quiet" type="button">Keep browsing</button>
+  <button class="quiet" type="button" id="back-hello">Back to why</button>
  </div>
 </aside>
+</div>
 <dialog id="sizes" aria-labelledby="sizes-title">
  <h2 id="sizes-title" style="font-weight:400;font-size:28px;margin:0 0 8px">Last step. Your two walls.</h2>
- <p class="lead">The wall with the stove, then the wall with the sink. Inches are fine.</p>
+ <p class="lead">These lengths are the room Turbo will model around the look you just picked. The wall with the stove, then the wall with the sink. Inches are fine.</p>
  <label for="range">Stove wall</label>
  <input id="range" inputmode="decimal" placeholder="169.5">
  <label for="sink">Sink wall</label>
@@ -60,7 +81,7 @@ input{width:100%;min-height:44px;font:inherit;padding:8px;border:1px solid #cdd2
   <button class="quiet" type="button" id="close">Back to the look</button>
   <button class="next" type="button" id="send">Send this look to Turbo</button>
  </div>
- <p class="lead" id="done" hidden>Job file ready. The look you picked is attached to those two numbers.</p>
+ <p class="lead" id="done" hidden>Job file ready. Turbo can model that look on those two walls.</p>
 </dialog>
 <script>
 const caption=document.querySelector('#caption');
@@ -68,6 +89,14 @@ const paint=()=>{
   const style=document.querySelector('#styles [aria-pressed=true]').textContent;
   const finish=document.querySelector('#finishes [aria-pressed=true]').textContent;
   caption.textContent=`${style} in ${finish}`;
+};
+document.querySelector('#enter').onclick=()=>{
+  document.querySelector('#hello').classList.add('hidden');
+  document.querySelector('#showroom').classList.remove('hidden');
+};
+document.querySelector('#back-hello').onclick=()=>{
+  document.querySelector('#showroom').classList.add('hidden');
+  document.querySelector('#hello').classList.remove('hidden');
 };
 for(const group of ['#styles','#finishes']){
   document.querySelector(group).onclick=(e)=>{

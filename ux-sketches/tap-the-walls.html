@@ -8,7 +8,13 @@
 <style>
 :root{--paper:#fff;--ink:#29372e;--muted:#747a70;--line:#d9ddd2}
 *{box-sizing:border-box}body{margin:0;font-family:'League Spartan',sans-serif;color:var(--ink);background:var(--paper)}
-header{padding:16px 22px;border-bottom:1px solid var(--line);font-size:12px;letter-spacing:.14em;text-transform:uppercase}
+header{padding:16px 22px;border-bottom:1px solid var(--line);font-size:12px;letter-spacing:.14em;text-transform:uppercase;display:flex;justify-content:space-between}
+header a{color:var(--muted);text-decoration:none}
+.intro{max-width:720px;margin:0 auto;padding:40px 24px 64px}
+.intro h1{font-weight:400;font-size:36px;letter-spacing:-.02em;line-height:1.1;margin:0 0 12px}
+.intro .lead{color:var(--muted);line-height:1.55;margin:0 0 16px}
+.intro ol{padding-left:20px;line-height:1.5;margin:0 0 24px}
+.intro li{margin:0 0 8px}
 .canvas{position:relative;margin:18px;aspect-ratio:16/9;background:linear-gradient(#f3efe6,#e4e0d4);border-radius:6px;overflow:hidden}
 .hint{position:absolute;left:16px;top:16px;background:#fffc;padding:8px 10px;font-size:13px}
 .wall{position:absolute;border:2px dashed var(--ink);background:#ffffff55;cursor:pointer;display:grid;place-items:end start;padding:8px;font-size:12px}
@@ -22,10 +28,25 @@ input{min-height:48px;margin:8px 12px 0 0;font:inherit;padding:8px 10px;border:1
 button.chip{border:1px solid var(--line);background:#fff;border-radius:999px;padding:8px 14px;font:inherit;cursor:pointer}
 button.chip[aria-pressed=true]{background:var(--ink);color:#fff}
 .next{min-height:48px;padding:0 18px;border:0;background:var(--ink);color:#fff;border-radius:4px;font:inherit;cursor:pointer}
+.full{width:100%;margin-top:8px}
+.quiet{background:none;border:0;color:var(--muted);font:inherit;cursor:pointer;padding:12px 0}
+.hidden{display:none}
 </style>
 </head>
 <body>
-<header>Turbo Cabinets · Tap a wall to size it</header>
+<header><a href="index.html">All four ways</a><span>Tap a wall to size it</span></header>
+<section class="intro" id="hello">
+ <h1>The picture is your kitchen. Tap a wall to size it.</h1>
+ <p class="lead">You are looking down at an L-shaped kitchen. Those two dashed boxes are the cabinet walls. Tell us how long each one is, then pick a look. Turbo uses that picture plus those two numbers to model your kitchen.</p>
+ <ol>
+  <li>Tap the stove wall and type how long it is.</li>
+  <li>Tap the sink wall and do the same.</li>
+  <li>Pick a look. Send both walls to the shop.</li>
+ </ol>
+ <p class="lead">This page is a click-through. The 3D kitchen is not here yet.</p>
+ <button class="next full" id="enter" type="button">Show me the kitchen</button>
+</section>
+<div id="studio" class="hidden">
 <div class="canvas" role="img" aria-label="L shaped kitchen">
  <div class="hint" id="hint">Tap the stove wall, then the sink wall.</div>
  <button class="wall range" type="button" aria-pressed="false" data-wall="range">Stove wall</button>
@@ -37,7 +58,7 @@ button.chip[aria-pressed=true]{background:var(--ink);color:#fff}
   <input id="length" inputmode="decimal">
   <button class="next" type="button" id="save-wall">Save this wall</button>
  </div>
- <p>Then pick a look</p>
+ <p>Then pick a look. This is what the model will wear.</p>
  <div class="looks">
   <button class="chip" aria-pressed="true">White Shaker</button>
   <button class="chip" aria-pressed="false">Green slim</button>
@@ -45,7 +66,9 @@ button.chip[aria-pressed=true]{background:var(--ink);color:#fff}
   <button class="chip" aria-pressed="false">Glass</button>
  </div>
  <button class="next" type="button" id="send" disabled>Send stove and sink walls to Turbo</button>
- <p id="done" hidden>Both walls are sized. Turbo gets the picture plus those two numbers.</p>
+ <button class="quiet" type="button" id="back-hello">Back to why</button>
+ <p id="done" hidden>Both walls are sized. Turbo gets the picture plus those two numbers and can model the kitchen.</p>
+</div>
 </div>
 <script>
 const sizes={range:'',sink:''};
@@ -57,6 +80,14 @@ const hint=document.querySelector('#hint');
 const paint=()=>{
   hint.textContent=sizes.range&&sizes.sink?`Stove ${sizes.range} in · Sink ${sizes.sink} in`:'Tap the stove wall, then the sink wall.';
   send.disabled=!(sizes.range&&sizes.sink);
+};
+document.querySelector('#enter').onclick=()=>{
+  document.querySelector('#hello').classList.add('hidden');
+  document.querySelector('#studio').classList.remove('hidden');
+};
+document.querySelector('#back-hello').onclick=()=>{
+  document.querySelector('#studio').classList.add('hidden');
+  document.querySelector('#hello').classList.remove('hidden');
 };
 document.querySelectorAll('.wall').forEach(btn=>btn.onclick=()=>{
   active=btn.dataset.wall;
