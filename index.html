@@ -11,11 +11,25 @@
 <script type="importmap">{"imports":{"three":"https://unpkg.com/three@0.185.1/build/three.module.js","three/addons/":"https://unpkg.com/three@0.185.1/examples/jsm/"}}</script>
 <script src="catalog.js"></script>
 <script type="module" src="studio.js"></script>
+<script type="module" src="showroom.js"></script>
 </head>
-<body>
+<body data-phase="welcome">
+<section id="welcome" class="welcome" aria-labelledby="welcome-title">
+ <div class="welcome-inner">
+  <p class="eyebrow">Turbo Cabinets</p>
+  <h1 id="welcome-title">Find a look first. We'll fit it to your room after.</h1>
+  <p class="welcome-lead">Turbo models your kitchen from two cabinet walls and a look. Pick doors and colors until the kitchen feels like yours. When you like it, add the stove wall and the sink wall. Then send that look plus those two numbers to the shop.</p>
+  <ol class="welcome-steps">
+   <li>Pick a door style and a color. The kitchen updates as you go.</li>
+   <li>When you are ready, add the stove wall and the sink wall.</li>
+   <li>Send that look plus those two numbers to the shop.</li>
+  </ol>
+  <button type="button" class="showroom-next" id="welcome-enter">Browse looks</button>
+ </div>
+</section>
 <main>
  <section class="canvas" aria-label="Kitchen preview">
-  <div class="modebar" role="group" aria-label="Preview mode"><button data-mode="interactive" aria-pressed="true">Interactive 3D</button><button data-mode="image" aria-pressed="false">High-quality images</button><button data-mode="layout" aria-pressed="false">Layout</button><button type="button" id="measure-open">Measure</button><button type="button" id="job-download" disabled>Save job ↓</button></div>
+  <div class="modebar" role="group" aria-label="Preview mode"><button data-mode="interactive" aria-pressed="true">Interactive 3D</button><button data-mode="image" aria-pressed="false">High-quality images</button><button data-mode="layout" aria-pressed="false">Layout</button><button type="button" id="measure-open">Room sizes</button><button type="button" id="job-download" disabled>Save job ↓</button></div>
   <div class="viewbar"><div class="segmented" role="group" aria-label="Camera view"><button data-view="kitchen" aria-pressed="true">Kitchen</button><button data-view="detail" aria-pressed="false">Close-up</button></div><button id="download" class="quiet" disabled>Save view ↓</button></div>
   <div class="image-stage" aria-busy="true"><div id="live-stage"></div><div id="image-stack" role="img" aria-label="Kitchen image" hidden></div><div id="layout-legend" hidden></div><div class="loading" id="loading" role="status">Loading your kitchen…</div><div id="load-error" hidden><p id="error-message"></p><button id="retry">Try again</button></div>
    <div class="orbit-tools" role="group" aria-label="3D navigation"><button id="zoom-in" aria-label="Zoom in">+</button><button id="zoom-out" aria-label="Zoom out">−</button><button id="reset" aria-label="Reset view">↺</button></div>
@@ -25,7 +39,7 @@
   <div class="image-caption"><span id="image-title" aria-live="polite"></span><span id="mode-caption">Interactive 3D</span></div>
  </section>
  <aside class="options" aria-label="Kitchen design options">
-  <div class="options-intro"><div class="eyebrow">Make it yours</div><h1>Find your combination.</h1></div>
+  <div class="options-intro"><div class="eyebrow">Showroom</div><h1>Find a look you like.</h1><p class="showroom-lead">Play with doors and colors. The kitchen updates as you go. Room sizes come next, only when you want Turbo to build this look in your space.</p></div>
   <div class="cabinet-controls">
   <div class="layout-field">
    <label for="layout" id="layout-label">Layout</label><select id="layout" aria-labelledby="layout-label"></select>
@@ -48,14 +62,19 @@
    <div id="floor-swatches" class="swatches surface-swatches" role="group" aria-labelledby="floor-label"></div>
    <p class="note">Countertops and flooring are styling suggestions, not Turbo Cabinets products. Colors and textures are approximate.</p>
   </div>
+  <div id="showroom-cta" class="showroom-cta">
+   <button type="button" id="showroom-ready">I like this. Add my room sizes</button>
+   <button type="button" class="quiet" id="welcome-back">Back to why</button>
+  </div>
  </aside>
 </main>
 <dialog id="snapshot" aria-labelledby="snapshot-title"><div class="dialog-top"><h2 id="snapshot-title">Your kitchen.</h2><button id="snapshot-close" class="quiet" aria-label="Close saved view">Close ×</button></div><img id="snapshot-image" alt=""><a id="snapshot-download" class="snapshot-link" download>Download PNG ↓</a></dialog>
 <dialog id="measure" aria-labelledby="measure-title">
- <div class="dialog-top"><h2 id="measure-title">Tape the L.</h2><button id="measure-close" class="quiet" aria-label="Close measure">Close ×</button></div>
+ <div class="dialog-top"><h2 id="measure-title">Your two walls.</h2><button id="measure-close" class="quiet" aria-label="Close room sizes">Close ×</button></div>
+ <p class="measure-lead" id="measure-lead">The wall with the stove, then the wall with the sink. Inches are fine.</p>
  <form id="measure-form">
   <div class="wall-fields">
-   <label for="range-length">Range wall (inches)</label>
+   <label for="range-length">Stove wall (inches)</label>
    <input id="range-length" name="range-length" inputmode="decimal" autocomplete="off" placeholder="169.5" aria-describedby="measure-error">
    <label for="sink-length">Sink wall (inches)</label>
    <input id="sink-length" name="sink-length" inputmode="decimal" autocomplete="off" placeholder="128.25">
@@ -66,7 +85,7 @@
    <label for="measure-photos">Photos <span class="optional">optional</span></label>
    <input id="measure-photos" type="file" accept="image/*" multiple>
   </div>
-  <p class="note">Tape numbers own the order.</p>
+  <p class="note">These lengths are the room Turbo will model around the look you picked.</p>
   <p id="measure-error" class="measure-error" role="alert" hidden></p>
   <button type="submit" id="measure-continue">Continue</button>
  </form>

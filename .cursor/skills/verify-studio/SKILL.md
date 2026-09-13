@@ -7,6 +7,8 @@ description: Drive Turbo Cabinets Studio V1 (web kitchen builder) to prove user-
 
 Drive the isolated V1 kitchen builder the way a customer would. Do not drive Noah's live site.
 
+V1 starts in a showroom. A welcome explains the job, then the customer picks a look, then adds two wall lengths, then sends the job. Measure, Layout, and Save job stay in the DOM. They stay out of the way until the look is chosen or a room already exists.
+
 ## Surfaces
 
 Primary surface is the V1 web UI at `https://turbo-cabinets-studio-v1.vercel.app/`.
@@ -53,7 +55,8 @@ Doctor is worth driving only when all of these hold:
 
 - The page title is `Cabinet studio · Turbo Cabinets`
 - `#measure-open`, `[data-mode=layout]`, and `#job-download` exist
-- `#measure-title` can read `Tape the L.`
+- The page has `#showroom-ready` or `#measure-title` can still read `Tape the L.`
+- `#measure-title` reads `Your two walls.` on the local showroom-first shell
 - The origin is the V1 host or a local verify directory this run started
 - `#load-error` is hidden after the first kitchen load in headed Chrome. Headless Chrome may show `The kitchen could not load` because WebGL is unavailable. Measure and Save job still run.
 
@@ -63,8 +66,11 @@ Refuse to drive `https://turbo-cabinets-studio.vercel.app/` or `https://turbocab
 
 Use `control-studio browser`. Prefer IDs, `data-mode`, `data-bank`, `data-view`, and accessible names over coordinates.
 
+If `#welcome` is visible, choose **Browse looks** before any other click. Room sizes open from `#showroom-ready`, not from the mode bar, until a room exists.
+
 ```sh
-.cursor/skills/verify-studio/scripts/control-studio browser click --selector '#measure-open'
+.cursor/skills/verify-studio/scripts/control-studio browser click --selector '#welcome-enter'
+.cursor/skills/verify-studio/scripts/control-studio browser click --selector '#showroom-ready'
 .cursor/skills/verify-studio/scripts/control-studio browser fill --selector '#range-length' --value '169.5'
 .cursor/skills/verify-studio/scripts/control-studio browser fill --selector '#sink-length' --value '128.25'
 .cursor/skills/verify-studio/scripts/control-studio browser click --selector '#measure-continue'

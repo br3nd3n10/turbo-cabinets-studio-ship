@@ -36,7 +36,8 @@ Each feature file starts with an H1 title and one paragraph. It then uses exactl
 
 ## Features
 
-- [Measure the L](./measure-l.md) covers opening Measure, entering wall tape, confirming, and landing in Layout.
+- [Showroom first](./showroom-first.md) covers the welcome, picking a look, and hiding shop controls until the customer is ready.
+- [Measure the L](./measure-l.md) covers opening Your two walls from the showroom, entering wall lengths, confirming, and landing in Layout.
 - [Choose cabinets](./choose-cabinets.md) covers upper and lower style and finish, plus Use on both.
 - [Preview modes](./preview-modes.md) covers Interactive 3D, High-quality images, Layout, Kitchen, and Close-up.
 - [Save a job](./save-job.md) covers downloading the job JSON after a confirmed tape.

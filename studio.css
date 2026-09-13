@@ -36,3 +36,30 @@ main{display:block}.canvas{position:static;width:100%}.image-stage{height:auto;m
 .tape-echo{font-family:'League Spartan',sans-serif;font-size:42px;letter-spacing:-.04em;line-height:1;margin:8px 0 4px}
 #confirm-openings{margin:0;padding-left:18px;font-size:13px;line-height:1.6;color:#697064}
 @media(max-width:390px){.opening-row{grid-template-columns:1fr 1fr;}.opening-row .quiet{grid-column:1/-1;justify-self:start}}
+
+body[data-phase="welcome"]{overflow:hidden}
+.welcome{position:fixed;inset:0;z-index:20;background:var(--paper);overflow:auto;padding:48px 24px 64px}
+.welcome-inner{max-width:720px;margin:0 auto}
+.welcome-inner h1{max-width:none;font-size:40px;margin:0 0 12px}
+.welcome-lead,.showroom-lead{color:var(--muted);line-height:1.55;margin:0 0 20px;max-width:42em;font-size:14px}
+.welcome-steps{padding-left:20px;line-height:1.5;margin:0 0 28px}
+.welcome-steps li{margin:0 0 8px}
+.showroom-next,#showroom-ready{border:0;background:var(--ink);color:#fff;border-radius:4px;min-height:48px;padding:0 18px;font-size:14px}
+.showroom-cta{margin-top:28px;display:flex;flex-direction:column;align-items:flex-start;gap:12px;grid-column:1/-1}
+#measure-lead{margin:8px 0 0}
+body[data-phase="welcome"] #showroom-cta,
+body[data-phase="ready"] #showroom-cta{display:none}
+body[data-phase="showroom"] [data-mode="layout"],
+body[data-phase="showroom"] #measure-open,
+body[data-phase="showroom"] #job-download,
+body[data-phase="showroom"] .layout-field,
+body[data-phase="sizing"] [data-mode="layout"],
+body[data-phase="sizing"] #measure-open,
+body[data-phase="sizing"] #job-download,
+body[data-phase="sizing"] .layout-field{display:none!important}
+@media(max-width:700px){
+ body[data-phase="showroom"] .options-intro,
+ body[data-phase="sizing"] .options-intro{display:block}
+ body[data-phase="showroom"] .options-intro h1,
+ body[data-phase="sizing"] .options-intro h1{display:block;font-size:28px;max-width:none}
+}

@@ -20,7 +20,8 @@ Preview modes let a customer look at the same kitchen as Interactive 3D, High-qu
 Preconditions:
 
 - Doctor reports `v1=true`.
-- Layout proofs first complete Measure the L.
+- If `#welcome` is visible, choose **Browse looks** first.
+- Layout proofs first complete Measure the L. Layout is hidden until that Confirm.
 
 - **Interactive.** Choose **Interactive 3D**. Run `control-studio browser click --selector "[data-mode=interactive]"`. `#mode-caption` reads `Interactive 3D`. `.orbit-tools` is visible. `#live-stage` is visible.
 - **Close-up.** Choose **Close-up**. Run `control-studio browser click --selector "[data-view=detail]"`. That button is pressed.
@@ -30,6 +31,6 @@ Preconditions:
 
 ## Gotchas
 
-- Layout without a room opens Measure. That is not a failed Layout control.
+- Layout stays hidden until a room exists. Clicking it before Confirm is not a customer path.
 - Image mode needs the V1 host's section images. A local overlay that fetched only GLBs cannot prove image mode.
 - A custom 3D orbit changes `#mode-caption` to `Custom 3D view`. Reset returns to Kitchen.

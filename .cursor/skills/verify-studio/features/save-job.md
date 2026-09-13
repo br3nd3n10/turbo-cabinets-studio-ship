@@ -10,8 +10,8 @@ Save a job downloads a JSON file of the confirmed L tape so the shop can take th
 
 ## How to get to it (user POV)
 
-- Choose **Save job ↓** in the mode bar after Confirm.
-- Choose **Save job ↓** on the Confirm the tape step.
+- Choose **Save job ↓** in the mode bar after Confirm. That button stays hidden until a room exists.
+- Choose **Save job ↓** on the Check these lengths step.
 
 ## Driving it with control-studio
 

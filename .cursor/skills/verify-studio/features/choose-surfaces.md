@@ -18,6 +18,7 @@ Choose surfaces lets a customer restyle the countertop and floor colors. Those c
 Preconditions:
 
 - Doctor reports `v1=true`.
+- If `#welcome` is visible, choose **Browse looks** first.
 - The session is in Interactive 3D or High-quality images.
 
 - **Countertop.** Choose Charcoal. Click the counter swatch that sets `#counter-name` to `Charcoal`. `#scene-canvas` `data-counter` becomes `charcoal` after the kitchen finishes loading.
