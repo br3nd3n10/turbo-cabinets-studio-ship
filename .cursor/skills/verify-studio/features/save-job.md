@@ -18,8 +18,10 @@ Save a job downloads a JSON file of the confirmed L tape so the shop can take th
 Preconditions:
 
 - Doctor reports `v1=true`.
+- If `#welcome` is visible, complete Showroom first then Measure the L first.
 - Measure the L has been confirmed, or the confirm dialog is open.
 
+- **Hidden first.** Before Confirm, `#job-download` is disabled and not shown.
 - **Disabled first.** Before Confirm, `#job-download` is disabled.
 - **Download after confirm.** Choose **Save job ↓**. Run `control-studio browser click --selector "#job-download"`. A file named like `turbo-job-range-169.5_sink-128.25.json` appears in the isolated Chrome download directory.
 - **Read the file.** The JSON `walls` array contains `id` `range` and `sink` with the typed lengths. It has no price fields.

@@ -31,5 +31,5 @@ Preconditions:
 
 - Live V1 HTML may still dump Measure on the mode bar until this shell is deployed. Use `--local` to prove the new path.
 - A stored room in `turbo-cabinet-studio-v5` skips welcome and starts in `ready`.
-- `#measure-open` stays in the DOM while hidden. Do not click it during `showroom`. Puppeteer cannot click `display:none`.
+- `#measure-open` stays in the DOM while hidden. `control-studio browser click` still fires it. Do not use that entry during `showroom`.
 - **Back to why** returns to welcome without clearing the look.

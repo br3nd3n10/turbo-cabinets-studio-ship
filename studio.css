@@ -49,6 +49,10 @@ body[data-phase="welcome"]{overflow:hidden}
 #measure-lead{margin:8px 0 0}
 body[data-phase="welcome"] #showroom-cta,
 body[data-phase="ready"] #showroom-cta{display:none}
+body[data-phase="welcome"] [data-mode="layout"],
+body[data-phase="welcome"] #measure-open,
+body[data-phase="welcome"] #job-download,
+body[data-phase="welcome"] .layout-field,
 body[data-phase="showroom"] [data-mode="layout"],
 body[data-phase="showroom"] #measure-open,
 body[data-phase="showroom"] #job-download,
@@ -57,6 +61,7 @@ body[data-phase="sizing"] [data-mode="layout"],
 body[data-phase="sizing"] #measure-open,
 body[data-phase="sizing"] #job-download,
 body[data-phase="sizing"] .layout-field{display:none!important}
+body[data-phase="welcome"] main{visibility:hidden}
 @media(max-width:700px){
  body[data-phase="showroom"] .options-intro,
  body[data-phase="sizing"] .options-intro{display:block}

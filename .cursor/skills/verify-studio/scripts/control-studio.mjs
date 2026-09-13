@@ -110,8 +110,10 @@ async function doctor() {
   if (!v1) fail('page is not V1 (missing showroom, Measure, Layout, or Save job)');
   const { page, browser: chrome } = await connect(instance);
   const errorHidden = await page.$eval('#load-error', (el) => el.hidden).catch(() => false);
+  const phase = await page.$eval('body', (el) => el.dataset.phase || '').catch(() => '');
+  const welcome = await page.$eval('#welcome', (el) => !el.hidden).catch(() => false);
   await chrome.disconnect();
-  console.log(`ok url=${instance.url} v1=true title=${JSON.stringify(title)} loadErrorHidden=${errorHidden}`);
+  console.log(`ok url=${instance.url} v1=true title=${JSON.stringify(title)} phase=${phase || 'none'} welcome=${welcome} loadErrorHidden=${errorHidden}`);
 }
 
 async function stop() {
@@ -135,8 +137,13 @@ async function browser(args) {
   const flags = parseFlags(args.slice(1));
   try {
     if (action === 'click') {
-      await page.click(need(flags, 'selector'));
-      console.log(`clicked ${flags.selector}`);
+      const selector = need(flags, 'selector');
+      const clicked = await page.$eval(selector, (el) => {
+        el.click();
+        return true;
+      }).catch(() => false);
+      if (!clicked) fail(`missing ${selector}`);
+      console.log(`clicked ${selector}`);
     } else if (action === 'fill') {
       const selector = need(flags, 'selector');
       await page.focus(selector);
