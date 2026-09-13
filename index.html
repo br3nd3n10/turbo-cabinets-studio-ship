@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Cabinet studio · Turbo Cabinets</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=League+Spartan:wght@100..900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="studio.css">
+<script type="importmap">{"imports":{"three":"https://unpkg.com/three@0.185.1/build/three.module.js","three/addons/":"https://unpkg.com/three@0.185.1/examples/jsm/"}}</script>
+<script src="catalog.js"></script>
+<script type="module" src="studio.js"></script>
+</head>
+<body>
+<main>
+ <section class="canvas" aria-label="Kitchen preview">
+  <div class="modebar" role="group" aria-label="Preview mode"><button data-mode="interactive" aria-pressed="true">Interactive 3D</button><button data-mode="image" aria-pressed="false">High-quality images</button><button data-mode="layout" aria-pressed="false">Layout</button><button type="button" id="measure-open">Measure</button><button type="button" id="job-download" disabled>Save job ↓</button></div>
+  <div class="viewbar"><div class="segmented" role="group" aria-label="Camera view"><button data-view="kitchen" aria-pressed="true">Kitchen</button><button data-view="detail" aria-pressed="false">Close-up</button></div><button id="download" class="quiet" disabled>Save view ↓</button></div>
+  <div class="image-stage" aria-busy="true"><div id="live-stage"></div><div id="image-stack" role="img" aria-label="Kitchen image" hidden></div><div id="layout-legend" hidden></div><div class="loading" id="loading" role="status">Loading your kitchen…</div><div id="load-error" hidden><p id="error-message"></p><button id="retry">Try again</button></div>
+   <div class="orbit-tools" role="group" aria-label="3D navigation"><button id="zoom-in" aria-label="Zoom in">+</button><button id="zoom-out" aria-label="Zoom out">−</button><button id="reset" aria-label="Reset view">↺</button></div>
+
+  </div>
+  <p class="gesture-help">Drag to rotate · Scroll or pinch to zoom · Right-drag to pan</p>
+  <div class="image-caption"><span id="image-title" aria-live="polite"></span><span id="mode-caption">Interactive 3D</span></div>
+ </section>
+ <aside class="options" aria-label="Kitchen design options">
+  <div class="options-intro"><div class="eyebrow">Make it yours</div><h1>Find your combination.</h1></div>
+  <div class="cabinet-controls">
+  <div class="layout-field">
+   <label for="layout" id="layout-label">Layout</label><select id="layout" aria-labelledby="layout-label"></select>
+  </div>
+  <div class="bank-tabs" role="group" aria-label="Cabinet group">
+   <button data-bank="upper" aria-pressed="true"><span class="bank-title">Upper cabinets</span><span id="upper-summary" class="bank-summary"></span></button>
+   <button data-bank="lower" aria-pressed="false"><span class="bank-title">Lower cabinets</span><span id="lower-summary" class="bank-summary"></span></button>
+  </div>
+  <div class="cabinet-editor" aria-label="Selected cabinet group">
+   <label for="style" id="style-label">Upper door style</label><select id="style" aria-labelledby="style-label"></select>
+   <div class="finish-heading"><span id="finish-label">Upper finish</span><span id="finish-name"></span></div>
+   <div id="finishes" class="swatches" role="group" aria-labelledby="finish-label"></div>
+   <div class="selection-footer"><span id="hardware-name"></span><button class="quiet" id="match-both">Use on both</button></div>
+  </div>
+  </div>
+  <div class="surface-section">
+   <div class="surface-heading"><label id="counter-label">Countertop</label><span id="counter-name"></span></div>
+   <div id="counter-swatches" class="swatches surface-swatches" role="group" aria-labelledby="counter-label"></div>
+   <div class="surface-heading"><label id="floor-label">Flooring</label><span id="floor-name"></span></div>
+   <div id="floor-swatches" class="swatches surface-swatches" role="group" aria-labelledby="floor-label"></div>
+   <p class="note">Countertops and flooring are styling suggestions, not Turbo Cabinets products. Colors and textures are approximate.</p>
+  </div>
+ </aside>
+</main>
+<dialog id="snapshot" aria-labelledby="snapshot-title"><div class="dialog-top"><h2 id="snapshot-title">Your kitchen.</h2><button id="snapshot-close" class="quiet" aria-label="Close saved view">Close ×</button></div><img id="snapshot-image" alt=""><a id="snapshot-download" class="snapshot-link" download>Download PNG ↓</a></dialog>
+<dialog id="measure" aria-labelledby="measure-title">
+ <div class="dialog-top"><h2 id="measure-title">Tape the L.</h2><button id="measure-close" class="quiet" aria-label="Close measure">Close ×</button></div>
+ <form id="measure-form">
+  <div class="wall-fields">
+   <label for="range-length">Range wall (inches)</label>
+   <input id="range-length" name="range-length" inputmode="decimal" autocomplete="off" placeholder="169.5" aria-describedby="measure-error">
+   <label for="sink-length">Sink wall (inches)</label>
+   <input id="sink-length" name="sink-length" inputmode="decimal" autocomplete="off" placeholder="128.25">
+  </div>
+  <div class="opening-head"><span>Openings</span><button type="button" id="add-opening" class="quiet">Add opening</button></div>
+  <div id="opening-list"></div>
+  <div id="measure-photos-field" hidden>
+   <label for="measure-photos">Photos <span class="optional">optional</span></label>
+   <input id="measure-photos" type="file" accept="image/*" multiple>
+  </div>
+  <p class="note">Tape numbers own the order.</p>
+  <p id="measure-error" class="measure-error" role="alert" hidden></p>
+  <button type="submit" id="measure-continue">Continue</button>
+ </form>
+ <div id="measure-confirm" hidden>
+  <p class="tape-echo" id="confirm-length"></p>
+  <ul id="confirm-openings"></ul>
+  <p id="confirm-photos" class="note"></p>
+  <div class="measure-actions"><button type="button" id="measure-back" class="quiet">Back</button><button type="button" id="measure-job-download" class="quiet">Save job ↓</button><button type="button" id="measure-confirm-btn">Confirm</button></div>
+ </div>
+</dialog>
+</body></html>

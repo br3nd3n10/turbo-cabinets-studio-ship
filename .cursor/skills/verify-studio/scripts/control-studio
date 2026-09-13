@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+set -euo pipefail
+root="$(cd "$(dirname "$0")" && pwd)"
+if [[ ! -d "$root/node_modules/puppeteer-core" ]]; then
+  npm install --prefix "$root" puppeteer-core@24.17.0 --silent
+fi
+exec node "$root/control-studio.mjs" "$@"

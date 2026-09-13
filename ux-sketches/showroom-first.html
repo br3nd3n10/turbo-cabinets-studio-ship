@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Showroom first</title>
+<link href="https://fonts.googleapis.com/css2?family=League+Spartan:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{--paper:#fff;--ink:#29372e;--muted:#747a70;--line:#d9ddd2}
+*{box-sizing:border-box}body{margin:0;font-family:'League Spartan',sans-serif;color:var(--ink);background:#f4f3ee}
+header{padding:18px 28px;background:#fff;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;font-size:12px;letter-spacing:.14em;text-transform:uppercase}
+.stage{background:#e8e4da;min-height:42vh;display:grid;place-items:center;color:var(--muted)}
+.stage strong{color:var(--ink);font-size:22px;font-weight:400}
+aside{background:#fff;padding:28px;max-width:1100px;margin:0 auto}
+h1{font-weight:400;font-size:32px;letter-spacing:-.04em;margin:0 0 8px}
+.lead{color:var(--muted);margin:0 0 20px}
+.row{display:flex;gap:10px;flex-wrap:wrap}
+button.card{border:1px solid var(--line);background:#fff;border-radius:8px;padding:12px 14px;font:inherit;cursor:pointer}
+button.card[aria-pressed=true]{border-color:var(--ink);font-weight:600}
+.cta{margin-top:22px;display:flex;gap:16px;align-items:center}
+.next{min-height:44px;padding:0 18px;border:0;background:var(--ink);color:#fff;border-radius:4px;font:inherit;cursor:pointer}
+.quiet{background:none;border:0;color:var(--muted);font:inherit;cursor:pointer}
+dialog{border:1px solid var(--line);border-radius:8px;padding:28px;max-width:420px}
+label{display:block;margin:12px 0 4px;font-size:13px}
+input{width:100%;min-height:44px;font:inherit;padding:8px;border:1px solid #cdd2c5;border-radius:5px}
+</style>
+</head>
+<body>
+<header><span>Turbo Cabinets</span><span>Showroom</span></header>
+<div class="stage"><div><strong id="caption">Shaker in Alpine White</strong><p>A kitchen picture would live here. Changing a look updates it.</p></div></div>
+<aside>
+ <h1>Find a look you like.</h1>
+ <p class="lead">Play with doors and colors first. Room sizes come later, only when you want Turbo to build it.</p>
+ <p>Doors</p>
+ <div class="row" id="styles">
+  <button class="card" aria-pressed="true">Shaker</button>
+  <button class="card" aria-pressed="false">Slim Shaker</button>
+  <button class="card" aria-pressed="false">European</button>
+  <button class="card" aria-pressed="false">Glass</button>
+ </div>
+ <p>Color</p>
+ <div class="row" id="finishes">
+  <button class="card" aria-pressed="true">Alpine White</button>
+  <button class="card" aria-pressed="false">Urban Green</button>
+  <button class="card" aria-pressed="false">Midnight Navy</button>
+ </div>
+ <div class="cta">
+  <button class="next" id="ready" type="button">I like this. Add my room sizes</button>
+  <button class="quiet" type="button">Keep browsing</button>
+ </div>
+</aside>
+<dialog id="sizes" aria-labelledby="sizes-title">
+ <h2 id="sizes-title" style="font-weight:400;font-size:28px;margin:0 0 8px">Last step. Your two walls.</h2>
+ <p class="lead">The wall with the stove, then the wall with the sink. Inches are fine.</p>
+ <label for="range">Stove wall</label>
+ <input id="range" inputmode="decimal" placeholder="169.5">
+ <label for="sink">Sink wall</label>
+ <input id="sink" inputmode="decimal" placeholder="128.25">
+ <div class="cta">
+  <button class="quiet" type="button" id="close">Back to the look</button>
+  <button class="next" type="button" id="send">Send this look to Turbo</button>
+ </div>
+ <p class="lead" id="done" hidden>Job file ready. The look you picked is attached to those two numbers.</p>
+</dialog>
+<script>
+const caption=document.querySelector('#caption');
+const paint=()=>{
+  const style=document.querySelector('#styles [aria-pressed=true]').textContent;
+  const finish=document.querySelector('#finishes [aria-pressed=true]').textContent;
+  caption.textContent=`${style} in ${finish}`;
+};
+for(const group of ['#styles','#finishes']){
+  document.querySelector(group).onclick=(e)=>{
+    const btn=e.target.closest('button'); if(!btn) return;
+    document.querySelectorAll(group+' button').forEach(b=>b.setAttribute('aria-pressed',String(b===btn)));
+    paint();
+  };
+}
+document.querySelector('#ready').onclick=()=>document.querySelector('#sizes').showModal();
+document.querySelector('#close').onclick=()=>document.querySelector('#sizes').close();
+document.querySelector('#send').onclick=()=>document.querySelector('#done').hidden=false;
+</script>
+</body>
+</html>

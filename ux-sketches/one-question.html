@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>One question</title>
+<link href="https://fonts.googleapis.com/css2?family=League+Spartan:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{--paper:#fff;--ink:#29372e;--muted:#747a70;--line:#d9ddd2}
+*{box-sizing:border-box}body{margin:0;min-height:100dvh;display:flex;flex-direction:column;font-family:'League Spartan',sans-serif;color:var(--ink);background:var(--paper)}
+header{padding:18px 24px;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+main{flex:1;display:flex;flex-direction:column;justify-content:center;padding:24px;max-width:560px;margin:0 auto;width:100%}
+h1{font-weight:400;font-size:42px;letter-spacing:-.045em;line-height:1.05;margin:0 0 16px}
+.help{color:var(--muted);line-height:1.5}
+input,select{width:100%;min-height:64px;margin:28px 0;font:inherit;font-size:28px;border:0;border-bottom:2px solid var(--ink);border-radius:0;padding:8px 0}
+.row{display:flex;justify-content:space-between;align-items:center}
+.next{min-height:48px;padding:0 22px;border:0;background:var(--ink);color:#fff;border-radius:4px;font:inherit;cursor:pointer}
+.quiet{background:none;border:0;color:var(--muted);font:inherit;cursor:pointer}
+.hidden{display:none}
+</style>
+</head>
+<body>
+<header>Turbo Cabinets · A few questions</header>
+<main>
+ <section id="q0">
+  <h1>Where is the stove?</h1>
+  <p class="help">We only need the two walls that hold the cabinets.</p>
+  <select id="stove-wall" aria-label="Wall with the stove">
+   <option value="range">On the longer wall</option>
+   <option value="sink">On the shorter wall</option>
+  </select>
+  <div class="row"><span></span><button class="next" type="button" data-next="q1">Next</button></div>
+ </section>
+ <section id="q1" class="hidden">
+  <h1>How long is the stove wall?</h1>
+  <p class="help">Pull the tape from corner to corner. Inches are fine. A half inch is okay.</p>
+  <input id="range" inputmode="decimal" value="169.5" aria-label="Stove wall length">
+  <div class="row"><button class="quiet" type="button" data-next="q0">Back</button><button class="next" type="button" data-next="q2">Next</button></div>
+ </section>
+ <section id="q2" class="hidden">
+  <h1>How long is the sink wall?</h1>
+  <p class="help">Same idea. Corner to corner, along the cabinets.</p>
+  <input id="sink" inputmode="decimal" value="128.25" aria-label="Sink wall length">
+  <div class="row"><button class="quiet" type="button" data-next="q1">Back</button><button class="next" type="button" data-next="q3">Next</button></div>
+ </section>
+ <section id="q3" class="hidden">
+  <h1>What should the doors look like?</h1>
+  <p class="help">Pick the closest match. Turbo can change this after they see the job.</p>
+  <select id="style" aria-label="Door style">
+   <option>Shaker, painted white</option>
+   <option>Slim Shaker, green</option>
+   <option>European, flat and light</option>
+   <option>Glass uppers</option>
+  </select>
+  <div class="row"><button class="quiet" type="button" data-next="q2">Back</button><button class="next" type="button" data-next="q4">Next</button></div>
+ </section>
+ <section id="q4" class="hidden">
+  <h1>Want us to take it from here?</h1>
+  <p class="help" id="recap"></p>
+  <div class="row"><button class="quiet" type="button" data-next="q3">Back</button><button class="next" type="button" id="send">Yes, send to Turbo</button></div>
+  <p class="help" id="done" hidden>Sent. Someone from Turbo will use these numbers to lay out the cabinets.</p>
+ </section>
+</main>
+<script>
+const show=(id)=>{
+  document.querySelectorAll('main section').forEach(s=>s.classList.toggle('hidden',s.id!==id));
+  if(id==='q4'){
+    document.querySelector('#recap').textContent=`Stove wall ${document.querySelector('#range').value} in. Sink wall ${document.querySelector('#sink').value} in. ${document.querySelector('#style').value}.`;
+  }
+};
+document.querySelectorAll('[data-next]').forEach(btn=>btn.onclick=()=>show(btn.dataset.next));
+document.querySelector('#send').onclick=()=>document.querySelector('#done').hidden=false;
+</script>
+</body>
+</html>
