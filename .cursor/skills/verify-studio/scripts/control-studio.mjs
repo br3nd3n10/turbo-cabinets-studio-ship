@@ -183,6 +183,10 @@ async function connect(instance) {
   const pages = await chrome.pages();
   const page = pages.find((p) => p.url().includes('cabinet') || p.url().includes('127.0.0.1')) || pages[0];
   if (!page) fail('no Chrome page');
+  const client = await page.createCDPSession();
+  await client.send('Browser.setDownloadBehavior', { behavior: 'allow', downloadPath: instance.downloads }).catch(async () => {
+    await client.send('Page.setDownloadBehavior', { behavior: 'allow', downloadPath: instance.downloads });
+  });
   return { browser: chrome, page };
 }
 

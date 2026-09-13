@@ -31,3 +31,4 @@ Preconditions:
 - Confirm is required. Continue alone does not enable the mode-bar Save job button.
 - The confirm-step Save job uses `#measure-job-download`. The mode-bar control is `#job-download`.
 - The download lands in the isolated profile's download directory, not the user's Downloads folder.
+- Each `browser` command re-applies the Chrome download path. A click without that path can look like a successful Save job with an empty folder.
