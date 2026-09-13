@@ -128,7 +128,7 @@ Never `pkill chrome` or `pkill python`. Kill the PIDs recorded in the run's inst
 | `launch` | Isolated Chrome on live V1 (old dump until HTML ships) |
 | `doctor` | Read-only V1 health check, including `phase` and `welcome` |
 | `browser click --selector <css>` | Click via the element's `click()` |
-| `browser fill --selector <css> --value <text>` | Replace field value |
+| `browser fill --selector <css> --value <text>` | Replace field value via input and change events |
 | `browser press --key <name>` | Send a key |
 | `browser snapshot --aria --path <file>` | Page text |
 | `browser screenshot --path <file>` | PNG |

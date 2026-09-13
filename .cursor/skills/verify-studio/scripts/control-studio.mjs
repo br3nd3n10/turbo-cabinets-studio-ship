@@ -146,9 +146,15 @@ async function browser(args) {
       console.log(`clicked ${selector}`);
     } else if (action === 'fill') {
       const selector = need(flags, 'selector');
-      await page.focus(selector);
-      await page.evaluate((sel) => { const el = document.querySelector(sel); if (el) el.value = ''; }, selector);
-      await page.type(selector, need(flags, 'value'));
+      const value = need(flags, 'value');
+      const filled = await page.$eval(selector, (el, next) => {
+        el.focus();
+        el.value = next;
+        el.dispatchEvent(new Event('input', { bubbles: true }));
+        el.dispatchEvent(new Event('change', { bubbles: true }));
+        return el.value;
+      }, value).catch(() => null);
+      if (filled == null) fail(`missing ${selector}`);
       console.log(`filled ${selector}`);
     } else if (action === 'press') {
       await page.keyboard.press(need(flags, 'key'));
