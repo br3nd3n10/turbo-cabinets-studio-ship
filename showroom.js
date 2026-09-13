@@ -41,9 +41,10 @@ function polishMeasure() {
   if (lead) lead.hidden = Boolean(confirm && !confirm.hidden);
   const echo = document.querySelector('#confirm-length');
   if (echo?.textContent) {
-    echo.textContent = echo.textContent
+    const next = echo.textContent
       .replace(/\brange\b/g, WALLS.range)
       .replace(/\bsink\b/g, WALLS.sink);
+    if (next !== echo.textContent) echo.textContent = next;
   }
 }
 
