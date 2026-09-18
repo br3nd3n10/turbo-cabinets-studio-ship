@@ -4,8 +4,8 @@ This directory is the maintained source for verifying V1 user-facing behavior. R
 
 ## Baseline preconditions
 
-- Drive `control-studio launch --local` until live V1 HTML includes `#welcome` and `#showroom-ready`.
-- Live V1 at `https://turbo-cabinets-studio-v1.vercel.app/` is the old dump until this shell is published.
+- Drive `https://turbo-cabinets-studio-v1.vercel.app/` unless the recipe says `--local`.
+- Live V1 is showroom-first. Welcome, then a look, then the two walls.
 - Run `.cursor/skills/verify-studio/scripts/control-studio doctor` and require `v1=true`.
 - Use the isolated Chrome profile from `control-studio launch`. Do not attach to a human browser.
 - Never drive `https://turbo-cabinets-studio.vercel.app/` or `https://turbocabinets.net/studio`. Those are the older production embed.

@@ -11,7 +11,7 @@ V1 starts in a showroom. A welcome explains the job, then the customer picks a l
 
 ## Surfaces
 
-Primary surface for this shell is a local overlay of this repo. Live V1 at `https://turbo-cabinets-studio-v1.vercel.app/` still dumps Measure on the mode bar until someone publishes this HTML.
+Primary surface is live V1 at `https://turbo-cabinets-studio-v1.vercel.app/`. That host is showroom-first. Models stay on the V1 origin. JS and CSS load from the ship repo pin.
 
 Noah's production page `https://turbocabinets.net/studio` embeds the older app at `https://turbo-cabinets-studio.vercel.app/`. That embed has no Measure, Layout, or Save job. Doctor fails if those controls are missing.
 
@@ -19,23 +19,21 @@ This repo holds the V1 JS, CSS, catalog, and `showroom.js` phase machine. The V1
 
 ## Launch
 
-Use the local overlay to prove showroom-first. Start an isolated Chrome profile. Do not reuse a human Chrome profile.
-
-```sh
-.cursor/skills/verify-studio/scripts/control-studio launch --local
-```
-
-The overlay copies `index.html`, `studio.css`, `studio.js`, `showroom.js`, `catalog.js`, and `studio.p1.txt` through `studio.p4.txt` into `/tmp/studio-verify-$RUN_ID`, fetches missing `models/measured-v3` GLBs from the V1 origin, and serves that directory.
-
-Ready when `http://127.0.0.1:<port>/` returns the Cabinet studio page and doctor prints `v1=true` and `phase=welcome`.
-
-Live V1 is only for comparing the old dump.
+Prefer the live V1 URL. Start an isolated Chrome profile. Do not reuse a human Chrome profile.
 
 ```sh
 .cursor/skills/verify-studio/scripts/control-studio launch
 ```
 
-Ready when doctor prints `url=https://turbo-cabinets-studio-v1.vercel.app/` and `v1=true`. That page will not have `#welcome` until this shell is deployed.
+Ready when doctor prints `url=https://turbo-cabinets-studio-v1.vercel.app/`, `v1=true`, and `phase=welcome`.
+
+Local overlay is for uncommitted `index.html`, `showroom.js`, or `studio.css` before a V1 deploy. It copies this repo into `/tmp/studio-verify-$RUN_ID`, fetches missing `models/measured-v3` GLBs from the V1 origin, and serves that directory.
+
+```sh
+.cursor/skills/verify-studio/scripts/control-studio launch --local
+```
+
+Ready when `http://127.0.0.1:<port>/` returns the Cabinet studio page and doctor prints `v1=true` and `phase=welcome`.
 
 Teardown:
 
@@ -57,9 +55,9 @@ Doctor is worth driving only when all of these hold:
 
 - The page title is `Cabinet studio · Turbo Cabinets`
 - `#measure-open`, `[data-mode=layout]`, and `#job-download` exist
-- The page has `#showroom-ready` (this shell) or `#measure-title` can still read `Tape the L.` (old live V1)
-- On this shell, `#welcome` exists and `#measure-title` reads `Your two walls.`
-- A fresh local profile starts at `phase=welcome`
+- The page has `#welcome` and `#showroom-ready`
+- `#measure-title` reads `Your two walls.`
+- A fresh profile starts at `phase=welcome`
 - The origin is the V1 host or a local verify directory this run started
 - `#load-error` is hidden after the first kitchen load in headed Chrome. Headless Chrome may show `The kitchen could not load` because WebGL is unavailable. Measure and Save job still run.
 
@@ -124,8 +122,8 @@ Never `pkill chrome` or `pkill python`. Kill the PIDs recorded in the run's inst
 
 | Command | What it does |
 | --- | --- |
+| `launch` | Isolated Chrome on live V1 |
 | `launch --local` | Local overlay server plus isolated Chrome |
-| `launch` | Isolated Chrome on live V1 (old dump until HTML ships) |
 | `doctor` | Read-only V1 health check, including `phase` and `welcome` |
 | `browser click --selector <css>` | Click via the element's `click()` |
 | `browser fill --selector <css> --value <text>` | Replace field value via input and change events |

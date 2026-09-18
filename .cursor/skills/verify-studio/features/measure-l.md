@@ -32,7 +32,7 @@ Preconditions:
 
 ## Gotchas
 
-- Live V1 that still says `Tape the L.` has not received this shell. Use `--local` until that HTML ships.
+- Live V1 is showroom-first. The heading is `Your two walls.`, not `Tape the L.`
 - `control-studio browser click` calls the element's `click()`, so a hidden `#measure-open` still opens the dialog. Use `#showroom-ready` on a fresh profile.
 - Layout stays hidden until Confirm. It is no longer an entry to Measure.
 - `#job-download` stays disabled until Confirm. A filled form is not a saved room.

@@ -19,7 +19,7 @@ Showroom first lets a customer learn the job, pick a look, and only then type th
 
 Preconditions:
 
-- Doctor reports `v1=true` on a local overlay (`launch --local`) until live V1 HTML ships this shell.
+- Doctor reports `v1=true` on live V1 or a local overlay.
 - No room is stored in this profile (`#job-download` is disabled).
 
 - **Welcome.** The first screen heading is `Find a look first. We'll fit it to your room after.` `#welcome` is visible. `#showroom-ready` is not shown.
@@ -29,7 +29,7 @@ Preconditions:
 
 ## Gotchas
 
-- Live V1 HTML may still dump Measure on the mode bar until this shell is deployed. Use `--local` to prove the new path.
+- Live V1 at `https://turbo-cabinets-studio-v1.vercel.app/` is the showroom-first host. Do not drive Noah's embed.
 - A stored room in `turbo-cabinet-studio-v5` skips welcome and starts in `ready`.
 - `#measure-open` stays in the DOM while hidden. `control-studio browser click` still fires it. Do not use that entry during `showroom`.
 - **Back to why** returns to welcome without clearing the look.
