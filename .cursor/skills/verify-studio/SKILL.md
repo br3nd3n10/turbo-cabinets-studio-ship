@@ -75,8 +75,8 @@ Customer path on a fresh profile:
 2. Choose **Tape my kitchen** (`#welcome-enter`). Phase becomes `sizing`. `#measure` opens. Layout, Save job, and `#template-list` are not shown.
 3. Type the stove wall and the sink wall. Add openings if the recipe needs them. Confirm.
 4. Phase becomes `templates`. A few layout cards are visible. Layout and Save job stay hidden.
-5. Choose one card (`#template-list [data-template]`). Phase becomes `ready`. Layout is pressed. `#job-download` is enabled.
-6. Keep swapping cabinets from the other cards, or change door style and color.
+5. Choose one card (`#template-list [data-template]`). Phase becomes `ready`. Interactive 3D is pressed. `#scene-canvas` `data-preview` is `sku`. `#job-download` is enabled.
+6. Keep swapping cabinets from the other cards, or change door style and color. The assembled kitchen updates. High-quality images show this kitchen, not the old showroom set.
 
 ```sh
 .cursor/skills/verify-studio/scripts/control-studio browser click --selector '#welcome-enter'

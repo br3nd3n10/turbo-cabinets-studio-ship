@@ -44,7 +44,7 @@ async function launch(local) {
   if (local) {
     const overlay = path.join(STATE_DIR, 'www');
     await mkdir(overlay, { recursive: true });
-    for (const name of ['index.html', 'studio.css', 'studio.js', 'showroom.js', 'templates.js', 'catalog.js', 'studio.p1.txt', 'studio.p2.txt', 'studio.p3.txt', 'studio.p4.txt']) {
+    for (const name of ['index.html', 'studio.css', 'studio.js', 'showroom.js', 'templates.js', 'kitchen.js', 'catalog.js', 'studio.p1.txt', 'studio.p2.txt', 'studio.p3.txt', 'studio.p4.txt']) {
       await cp(path.join(REPO_DIR, name), path.join(overlay, name));
     }
     await fetchModels(overlay);
@@ -267,6 +267,14 @@ async function fetchModels(overlay) {
     try { await access(dest); continue; } catch {}
     await mkdir(path.dirname(dest), { recursive: true });
     await download(`${LIVE_V1}${rel}`, dest);
+  }
+  const skuDir = path.join(REPO_DIR, 'models', 'sku-v1');
+  try {
+    await access(skuDir);
+    await mkdir(path.join(overlay, 'models', 'sku-v1'), { recursive: true });
+    await cp(skuDir, path.join(overlay, 'models', 'sku-v1'), { recursive: true });
+  } catch {
+    /* live V1 host will serve sku-v1 after deploy */
   }
 }
 

@@ -26,8 +26,8 @@ Preconditions:
 - **Welcome.** The first screen heading is `Tape both walls first. We'll show kitchens that fit.` `#welcome` is visible. `#template-list` is not shown.
 - **Open sizes.** Choose **Tape my kitchen**. Run `control-studio browser click --selector "#welcome-enter"`. `body` `data-phase` is `sizing`. `#measure` is open. `#measure-title` reads `Your two walls.` `#template-list` is not shown. `[data-mode=layout]` and `#job-download` are not shown.
 - **Confirm the room.** Type `169.5` and `128.25`, Continue, then Confirm. Phase becomes `templates`. `#templates` is visible. At least two `[data-template]` cards list stove-wall and sink-wall SKUs from current inventory.
-- **Pick a layout.** Choose **Longer boxes**. Run `control-studio browser click --selector "#template-list [data-template=longer]"`. `body` `data-phase` is `ready`. That card is pressed. `[data-mode=layout]` is pressed. `#job-download` is enabled.
-- **Proof.** Snapshot welcome, sizing (no cards), templates (cards, no Layout), and ready (Layout pressed) under `.cursor/skills/verify-studio/artifacts/measure-first/`.
+- **Pick a layout.** Choose **Longer boxes**. Run `control-studio browser click --selector "#template-list [data-template=longer]"`. `body` `data-phase` is `ready`. That card is pressed. `[data-mode=interactive]` is pressed. `#scene-canvas` `data-preview` is `sku`. `#job-download` is enabled.
+- **Proof.** Snapshot welcome, sizing (no cards), templates (cards, no Layout), and ready (assembled SKU kitchen) under `.cursor/skills/verify-studio/artifacts/measure-first/`.
 
 ## Gotchas
 

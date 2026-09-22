@@ -111,15 +111,9 @@ function recipesFor(room) {
 }
 
 function applyLayoutView() {
-  const layout = document.querySelector('[data-mode=layout]');
   const interactive = document.querySelector('[data-mode=interactive]');
-  if (!layout) return;
-  if (layout.getAttribute('aria-pressed') === 'true') {
-    interactive?.click();
-    layout.click();
-    return;
-  }
-  layout.click();
+  interactive?.click();
+  if (typeof globalThis.STUDIO_REFRESH === 'function') globalThis.STUDIO_REFRESH();
 }
 
 function chooseTemplate(recipe, { refresh = true } = {}) {

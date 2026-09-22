@@ -1,0 +1,4 @@
+models/
+node_modules/
+.cursor/skills/verify-studio/artifacts/
+.cursor/skills/verify-studio/scripts/node_modules/
