@@ -15,7 +15,7 @@ Primary surface is live V1 at `https://turbo-cabinets-studio-v1.vercel.app/`. Th
 
 Noah's production page `https://turbocabinets.net/studio` embeds the older app at `https://turbo-cabinets-studio.vercel.app/`. That embed has no Measure, Layout, or Save job. Doctor fails if those controls are missing.
 
-This repo holds the V1 JS, CSS, catalog, `showroom.js` phase machine, `templates.js` packer, and `kitchen.js` SKU assembler. The V1 HTML shell is `index.html`. Measured GLBs, `models/sku-v1` meshes, and section images live on the V1 host, not in this git tree.
+This repo holds the V1 JS, CSS, catalog, `showroom.js` phase machine, `templates.js` packer, `kitchen.js` SKU assembler, and `models/sku-v1` meshes. The V1 HTML shell is `index.html`. Live V1 pins JS/CSS from this repo and rewrites `/models/sku-v1` to that pin. Measured-v3 GLBs and section images stay on the original V1 host.
 
 ## Launch
 
