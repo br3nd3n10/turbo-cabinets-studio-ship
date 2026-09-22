@@ -53,7 +53,7 @@ function recipeId() {
 function packUppers(room) {
   const ids = UPPER_RECIPES[recipeId()] || UPPER_RECIPES.longer;
   const skus = ids.map((id) => META[id]).filter(Boolean).map((meta, i) => ({ id: ids[i], ...meta }));
-  return packRoom(room, skus);
+  return packRoom(room, skus, { filler: { id: 'F3-upper', ...META['F3-upper'] } });
 }
 
 function openingRows(room) {

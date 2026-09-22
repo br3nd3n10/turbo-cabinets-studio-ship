@@ -17,7 +17,7 @@ const FILLER = { id: 'F3-base', kind: 'filler', width: 3, height: 34.5, depth: 2
 const RECIPES = [
   { id: 'longer', name: 'Longer boxes', blurb: 'Largest current boxes first.', skus: sortByWidth(BASE, -1) },
   { id: 'more', name: 'More cabinets', blurb: 'Smaller current boxes, more doors.', skus: sortByWidth(BASE, 1) },
-  { id: 'even', name: 'Even run', blurb: 'Mid-size boxes, no 39-inch corner.', skus: [BASE[2], BASE[3], BASE[1], BASE[4]] },
+  { id: 'even', name: 'Even run', blurb: 'Mid-size boxes past the corner.', skus: [BASE[0], BASE[2], BASE[3], BASE[1], BASE[4]] },
   { id: 'tight', name: 'Tight fillers', blurb: 'Largest boxes, then 3-inch fillers.', skus: [...sortByWidth(BASE, -1), FILLER] },
 ];
 
@@ -71,7 +71,7 @@ function recipesFor(room) {
   const seen = new Set();
   const out = [];
   for (const recipe of RECIPES) {
-    const rows = packRoom(room, recipe.skus, CUT_FACE);
+    const rows = packRoom(room, recipe.skus, { cutFace: CUT_FACE, filler: FILLER });
     if (!rows.length) continue;
     const key = signature(rows);
     if (seen.has(key)) continue;

@@ -1,8 +1,9 @@
 // Both walls are taped from the inside corner. One blind corner box owns that corner on
 // the range wall, pulled 3 in off the sink wall so its door clears the return's fronts.
-// The return starts past the corner box's depth plus the same 3 in filler. Without a
-// blind box the corner stays dead and both runs start past it. This follows the
-// measured reference layout (MEASURED_LAYOUT.md).
+// The return starts past the corner box's depth plus the same 3 in. A 3 in filler fills
+// each of those two strips so the run stays continuous, as in the measured reference
+// layout (MEASURED_LAYOUT.md). Without a blind box the corner stays dead and both runs
+// start past it.
 const CORNER_FILLER = 3;
 
 function runs(wall, from) {
@@ -37,19 +38,29 @@ function fillRun(run, wall, skus, cutFace, lead = null) {
   return rows;
 }
 
-function packWall(wall, skus, cutFace, blind, past) {
-  if (wall.id === 'range' && blind) {
-    const [first, ...rest] = runs(wall, CORNER_FILLER);
-    if (first && first.start === CORNER_FILLER && first.start + blind.width <= first.end) {
-      return [...fillRun(first, wall, skus, cutFace, blind), ...rest.flatMap((run) => fillRun(run, wall, skus, cutFace))];
-    }
-  }
-  return runs(wall, past).flatMap((run) => fillRun(run, wall, skus, cutFace));
+function blindCornerFits(wall, blind) {
+  const [first] = runs(wall, CORNER_FILLER);
+  return Boolean(first && first.start === CORNER_FILLER && first.start + blind.width <= first.end);
 }
 
-export function packRoom(room, skus, cutFace = null) {
-  const blind = skus.find((sku) => sku.blind) || null;
+function packWall(wall, skus, cutFace, blind, strip, depth) {
+  const past = depth + CORNER_FILLER;
+  if (!blind) return runs(wall, past).flatMap((run) => fillRun(run, wall, skus, cutFace));
+  const joint = (start) => (strip ? [{ skuId: strip.id, wallId: wall.id, start }] : []);
+  if (wall.id === 'range') {
+    const [first, ...rest] = runs(wall, CORNER_FILLER);
+    return [...joint(0), ...fillRun(first, wall, skus, cutFace, blind), ...rest.flatMap((run) => fillRun(run, wall, skus, cutFace))];
+  }
+  return [...joint(depth), ...runs(wall, past).flatMap((run) => fillRun(run, wall, skus, cutFace))];
+}
+
+export function packRoom(room, skus, { cutFace = null, filler = null } = {}) {
+  const walls = room?.walls || [];
   const regular = skus.filter((sku) => !sku.blind);
   const depth = Math.max(0, ...skus.map((sku) => sku.depth || 0));
-  return (room?.walls || []).flatMap((wall) => packWall(wall, regular, cutFace, blind, depth + CORNER_FILLER));
+  const range = walls.find((wall) => wall.id === 'range');
+  const candidate = skus.find((sku) => sku.blind) || null;
+  const blind = candidate && range && blindCornerFits(range, candidate) ? candidate : null;
+  const strip = filler && filler.width === CORNER_FILLER ? filler : null;
+  return walls.flatMap((wall) => packWall(wall, regular, cutFace, blind, strip, depth));
 }
