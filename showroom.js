@@ -34,6 +34,20 @@ function startPhase() {
   else setPhase('welcome');
 }
 
+// The studio still restores its last preview mode from storage. With the mode bar gone,
+// 3D is the only view, so a stored image or layout mode would strand a returning customer.
+function pinInteractive() {
+  try {
+    const state = JSON.parse(localStorage.getItem(STATE) || 'null');
+    if (state && state.mode && state.mode !== 'interactive') {
+      state.mode = 'interactive';
+      localStorage.setItem(STATE, JSON.stringify(state));
+    }
+  } catch {
+    /* ignore */
+  }
+}
+
 function polishMeasure() {
   const title = document.querySelector('#measure-title');
   const confirm = document.querySelector('#measure-confirm');
@@ -79,6 +93,7 @@ function onMeasureClose() {
 
 function boot() {
   globalThis.STUDIO_SET_PHASE = setPhase;
+  pinInteractive();
   startPhase();
   document.querySelector('#welcome-enter')?.addEventListener('click', openSizes);
   document.querySelector('#measure')?.addEventListener('close', onMeasureClose);

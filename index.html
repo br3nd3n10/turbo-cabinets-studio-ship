@@ -32,8 +32,7 @@
 </section>
 <main>
  <section class="canvas" aria-label="Kitchen preview">
-  <div class="modebar" role="group" aria-label="Preview mode"><button data-mode="interactive" aria-pressed="true">Interactive 3D</button><button data-mode="image" aria-pressed="false">High-quality images</button><button data-mode="layout" aria-pressed="false">Layout</button><button type="button" id="measure-open">Room sizes</button><button type="button" id="job-download" disabled>Save job ↓</button></div>
-  <div class="viewbar"><div class="segmented" role="group" aria-label="Camera view"><button data-view="kitchen" aria-pressed="true">Kitchen</button><button data-view="detail" aria-pressed="false">Close-up</button></div><button id="download" class="quiet" disabled>Save view ↓</button></div>
+  <div class="viewbar"><div class="segmented" role="group" aria-label="Camera view"><button data-view="kitchen" aria-pressed="true">Kitchen</button><button data-view="detail" aria-pressed="false">Close-up</button></div><div class="viewbar-actions"><button type="button" id="measure-open" class="quiet">Room sizes</button><button id="download" class="quiet" disabled>Save view ↓</button><button type="button" id="job-download" disabled>Save job ↓</button></div></div>
   <div class="image-stage" aria-busy="true"><div id="live-stage"></div><div id="image-stack" role="img" aria-label="Kitchen image" hidden></div><div id="layout-legend" hidden></div><div class="loading" id="loading" role="status">Loading your kitchen…</div><div id="load-error" hidden><p id="error-message"></p><button id="retry">Try again</button></div>
    <div class="orbit-tools" role="group" aria-label="3D navigation"><button id="zoom-in" aria-label="Zoom in">+</button><button id="zoom-out" aria-label="Zoom out">−</button><button id="reset" aria-label="Reset view">↺</button></div>
 

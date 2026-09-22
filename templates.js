@@ -82,8 +82,6 @@ function recipesFor(room) {
 }
 
 function applyLayoutView() {
-  const interactive = document.querySelector('[data-mode=interactive]');
-  interactive?.click();
   if (typeof globalThis.STUDIO_REFRESH === 'function') globalThis.STUDIO_REFRESH();
 }
 
