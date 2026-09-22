@@ -1,4 +1,6 @@
-models/
+models/*
+!models/sku-v1/
+!models/sku-v1/**
 node_modules/
 .cursor/skills/verify-studio/artifacts/
 .cursor/skills/verify-studio/scripts/node_modules/

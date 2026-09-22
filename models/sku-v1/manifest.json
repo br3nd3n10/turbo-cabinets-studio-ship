@@ -1,0 +1,348 @@
+{
+  "version": 1,
+  "sourceIssue": "https://github.com/br3nd3n10/turbo-cabinets-studio/issues/16",
+  "units": "meters",
+  "dimensionsUnits": "inches",
+  "metersPerInch": 0.0254,
+  "axes": {
+    "x": "right",
+    "y": "up",
+    "z": "outward from cabinet front"
+  },
+  "origin": "left/front/bottom of carcass; depth extends along negative Z",
+  "styleSelection": "Choose exactly one named glTF scene; default is shaker. Scenes share a single carcass mesh.",
+  "materialRoles": [
+    "CABINET_FINISH",
+    "CABINET_INTERIOR",
+    "CABINET_HARDWARE",
+    "CABINET_FRAME",
+    "CABINET_GLASS"
+  ],
+  "blindCornerNote": "front_start in measured_layout.json is wall-relative. Subtract start=3: BBC39-L offset=24, WBC2730-L offset=12, both front widths=15.",
+  "assumptions": [
+    "Profiles, hardware and internal construction are illustrative, matching the existing catalog concept.",
+    "Cabinet dimensions describe the carcass. Fronts and handles project beyond the front plane.",
+    "BWB18 uses the existing drawer/door concept; no unverified pullout mechanism is inferred."
+  ],
+  "assets": [
+    {
+      "id": "BBC39-L",
+      "kind": "base",
+      "width": 39,
+      "height": 34.5,
+      "depth": 24,
+      "purchasable": true,
+      "frontOffset": 24,
+      "frontWidth": 15,
+      "placementBottom": 0,
+      "asset": "models/sku-v1/BBC39-L.glb",
+      "styles": [
+        "shaker",
+        "slim-shaker",
+        "european",
+        "classic",
+        "double-shaker",
+        "gloss",
+        "glass",
+        "builder-grade"
+      ],
+      "defaultScene": "shaker"
+    },
+    {
+      "id": "RANGE1.30",
+      "kind": "appliance",
+      "width": 30,
+      "height": 44.6,
+      "depth": 27,
+      "purchasable": false,
+      "assumption": "Illustrative appliance; height and depth preserve measured-v3 modeled bounds. Width matches the issue opening.",
+      "placementBottom": 0,
+      "asset": "models/sku-v1/RANGE1.30.glb",
+      "styles": [],
+      "defaultScene": "default"
+    },
+    {
+      "id": "B12-R",
+      "kind": "base",
+      "width": 12,
+      "height": 34.5,
+      "depth": 24,
+      "purchasable": true,
+      "placementBottom": 0,
+      "asset": "models/sku-v1/B12-R.glb",
+      "styles": [
+        "shaker",
+        "slim-shaker",
+        "european",
+        "classic",
+        "double-shaker",
+        "gloss",
+        "glass",
+        "builder-grade"
+      ],
+      "defaultScene": "shaker"
+    },
+    {
+      "id": "REF.2D.36",
+      "kind": "appliance",
+      "width": 36,
+      "height": 64.9,
+      "depth": 29.5,
+      "purchasable": false,
+      "assumption": "Illustrative appliance; height and depth preserve measured-v3 modeled bounds. Width matches the issue opening.",
+      "placementBottom": 0,
+      "asset": "models/sku-v1/REF.2D.36.glb",
+      "styles": [],
+      "defaultScene": "default"
+    },
+    {
+      "id": "F3-base",
+      "kind": "filler",
+      "width": 3,
+      "height": 34.5,
+      "depth": 24,
+      "purchasable": true,
+      "placementBottom": 0,
+      "asset": "models/sku-v1/F3-base.glb",
+      "styles": [],
+      "defaultScene": "default"
+    },
+    {
+      "id": "BWB18",
+      "kind": "base",
+      "width": 18,
+      "height": 34.5,
+      "depth": 24,
+      "purchasable": true,
+      "placementBottom": 0,
+      "asset": "models/sku-v1/BWB18.glb",
+      "styles": [
+        "shaker",
+        "slim-shaker",
+        "european",
+        "classic",
+        "double-shaker",
+        "gloss",
+        "glass",
+        "builder-grade"
+      ],
+      "defaultScene": "shaker"
+    },
+    {
+      "id": "SB36",
+      "kind": "base",
+      "width": 36,
+      "height": 34.5,
+      "depth": 24,
+      "purchasable": true,
+      "placementBottom": 0,
+      "asset": "models/sku-v1/SB36.glb",
+      "styles": [
+        "shaker",
+        "slim-shaker",
+        "european",
+        "classic",
+        "double-shaker",
+        "gloss",
+        "glass",
+        "builder-grade"
+      ],
+      "defaultScene": "shaker"
+    },
+    {
+      "id": "DISH-IQ6",
+      "kind": "appliance",
+      "width": 24,
+      "height": 34.4,
+      "depth": 25,
+      "purchasable": false,
+      "assumption": "Illustrative appliance; height and depth preserve measured-v3 modeled bounds. Width matches the issue opening.",
+      "placementBottom": 0,
+      "asset": "models/sku-v1/DISH-IQ6.glb",
+      "styles": [],
+      "defaultScene": "default"
+    },
+    {
+      "id": "B15-L",
+      "kind": "base",
+      "width": 15,
+      "height": 34.5,
+      "depth": 24,
+      "purchasable": true,
+      "placementBottom": 0,
+      "asset": "models/sku-v1/B15-L.glb",
+      "styles": [
+        "shaker",
+        "slim-shaker",
+        "european",
+        "classic",
+        "double-shaker",
+        "gloss",
+        "glass",
+        "builder-grade"
+      ],
+      "defaultScene": "shaker"
+    },
+    {
+      "id": "WBC2730-L",
+      "kind": "upper",
+      "width": 27,
+      "height": 36,
+      "depth": 12,
+      "purchasable": true,
+      "frontOffset": 12,
+      "frontWidth": 15,
+      "placementBottom": 54,
+      "asset": "models/sku-v1/WBC2730-L.glb",
+      "styles": [
+        "shaker",
+        "slim-shaker",
+        "european",
+        "classic",
+        "double-shaker",
+        "gloss",
+        "glass",
+        "builder-grade"
+      ],
+      "defaultScene": "shaker"
+    },
+    {
+      "id": "W1230-L",
+      "kind": "upper",
+      "width": 12,
+      "height": 36,
+      "depth": 12,
+      "purchasable": true,
+      "placementBottom": 54,
+      "asset": "models/sku-v1/W1230-L.glb",
+      "styles": [
+        "shaker",
+        "slim-shaker",
+        "european",
+        "classic",
+        "double-shaker",
+        "gloss",
+        "glass",
+        "builder-grade"
+      ],
+      "defaultScene": "shaker"
+    },
+    {
+      "id": "W3015",
+      "kind": "upper",
+      "width": 30,
+      "height": 15,
+      "depth": 12,
+      "purchasable": true,
+      "placementBottom": 75,
+      "asset": "models/sku-v1/W3015.glb",
+      "styles": [
+        "shaker",
+        "slim-shaker",
+        "european",
+        "classic",
+        "double-shaker",
+        "gloss",
+        "glass",
+        "builder-grade"
+      ],
+      "defaultScene": "shaker"
+    },
+    {
+      "id": "W1230-R",
+      "kind": "upper",
+      "width": 12,
+      "height": 36,
+      "depth": 12,
+      "purchasable": true,
+      "placementBottom": 54,
+      "asset": "models/sku-v1/W1230-R.glb",
+      "styles": [
+        "shaker",
+        "slim-shaker",
+        "european",
+        "classic",
+        "double-shaker",
+        "gloss",
+        "glass",
+        "builder-grade"
+      ],
+      "defaultScene": "shaker"
+    },
+    {
+      "id": "W3615",
+      "kind": "upper",
+      "width": 36,
+      "height": 15,
+      "depth": 29.5,
+      "purchasable": true,
+      "placementBottom": 75,
+      "asset": "models/sku-v1/W3615.glb",
+      "styles": [
+        "shaker",
+        "slim-shaker",
+        "european",
+        "classic",
+        "double-shaker",
+        "gloss",
+        "glass",
+        "builder-grade"
+      ],
+      "defaultScene": "shaker"
+    },
+    {
+      "id": "F3-upper",
+      "kind": "filler",
+      "width": 3,
+      "height": 36,
+      "depth": 12,
+      "purchasable": true,
+      "placementBottom": 54,
+      "asset": "models/sku-v1/F3-upper.glb",
+      "styles": [],
+      "defaultScene": "default"
+    },
+    {
+      "id": "W2730",
+      "kind": "upper",
+      "width": 27,
+      "height": 36,
+      "depth": 12,
+      "purchasable": true,
+      "placementBottom": 54,
+      "asset": "models/sku-v1/W2730.glb",
+      "styles": [
+        "shaker",
+        "slim-shaker",
+        "european",
+        "classic",
+        "double-shaker",
+        "gloss",
+        "glass",
+        "builder-grade"
+      ],
+      "defaultScene": "shaker"
+    },
+    {
+      "id": "W3630",
+      "kind": "upper",
+      "width": 36,
+      "height": 36,
+      "depth": 12,
+      "purchasable": true,
+      "placementBottom": 54,
+      "asset": "models/sku-v1/W3630.glb",
+      "styles": [
+        "shaker",
+        "slim-shaker",
+        "european",
+        "classic",
+        "double-shaker",
+        "gloss",
+        "glass",
+        "builder-grade"
+      ],
+      "defaultScene": "shaker"
+    }
+  ]
+}
