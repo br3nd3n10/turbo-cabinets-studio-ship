@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { packRoom } from './pack.js';
 
 const IN = 0.0254;
 const STATE_KEY = 'turbo-cabinet-studio-v5';
@@ -49,34 +50,10 @@ function recipeId() {
   }
 }
 
-function spans(wall) {
-  const openings = [...(wall.openings || [])].sort((a, b) => a.start - b.start);
-  const out = [];
-  let at = 0;
-  for (const opening of openings) {
-    if (opening.start > at) out.push({ start: at, end: opening.start });
-    at = Math.max(at, opening.start + opening.width);
-  }
-  if (at < wall.length) out.push({ start: at, end: wall.length });
-  return out;
-}
-
 function packUppers(room) {
   const ids = UPPER_RECIPES[recipeId()] || UPPER_RECIPES.longer;
   const skus = ids.map((id) => META[id]).filter(Boolean).map((meta, i) => ({ id: ids[i], ...meta }));
-  const rows = [];
-  for (const wall of room?.walls || []) {
-    for (const span of spans(wall)) {
-      let at = span.start;
-      while (at < span.end) {
-        const fit = skus.find((sku) => at + sku.width <= span.end);
-        if (!fit) break;
-        rows.push({ skuId: fit.id, wallId: wall.id, start: at });
-        at += fit.width;
-      }
-    }
-  }
-  return rows;
+  return packRoom(room, skus);
 }
 
 function openingRows(room) {

@@ -1,6 +1,9 @@
+import { packRoom } from './pack.js';
+
 const TEMPLATE_KEY = 'turbo-studio-template';
 const STATE_KEY = 'turbo-cabinet-studio-v5';
 const WALL_NAME = { range: 'Stove wall', sink: 'Sink wall' };
+const CUT_FACE = { height: 34.5, depth: 24 };
 
 const BASE = [
   { id: 'BBC39-L', kind: 'base', width: 39, height: 34.5, depth: 24 },
@@ -48,38 +51,6 @@ function clearPick() {
   globalThis.STUDIO_LAYOUT_OVERRIDE = null;
 }
 
-function spans(wall) {
-  const openings = [...(wall.openings || [])].sort((a, b) => a.start - b.start);
-  const out = [];
-  let at = 0;
-  for (const opening of openings) {
-    if (opening.start > at) out.push({ start: at, end: opening.start });
-    at = Math.max(at, opening.start + opening.width);
-  }
-  if (at < wall.length) out.push({ start: at, end: wall.length });
-  return out;
-}
-
-function fillSpan(span, wall, skus) {
-  const rows = [];
-  let at = span.start;
-  while (at < span.end) {
-    const fit = skus.find((sku) => at + sku.width <= span.end);
-    if (!fit) {
-      const width = span.end - at;
-      if (width > 0) rows.push({ cut: true, wallId: wall.id, start: at, width, height: 34.5, depth: 24 });
-      break;
-    }
-    rows.push({ skuId: fit.id, wallId: wall.id, start: at });
-    at += fit.width;
-  }
-  return rows;
-}
-
-function packRoom(room, skus) {
-  return room.walls.flatMap((wall) => spans(wall).flatMap((span) => fillSpan(span, wall, skus)));
-}
-
 function signature(rows) {
   return rows.map((row) => (row.cut ? `${row.wallId}:cut:${row.width}` : `${row.wallId}:${row.skuId}`)).join('|');
 }
@@ -100,7 +71,7 @@ function recipesFor(room) {
   const seen = new Set();
   const out = [];
   for (const recipe of RECIPES) {
-    const rows = packRoom(room, recipe.skus);
+    const rows = packRoom(room, recipe.skus, CUT_FACE);
     if (!rows.length) continue;
     const key = signature(rows);
     if (seen.has(key)) continue;
