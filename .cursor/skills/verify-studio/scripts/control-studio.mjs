@@ -195,9 +195,16 @@ async function browser(args) {
         const { min, max } = item.world;
         console.log(`${item.wallId} ${item.skuId} x[${min[0]},${max[0]}] y[${min[1]},${max[1]}] z[${min[2]},${max[2]}]`);
       }
-      console.log(`placed=${report.placed.length} stacked=${report.stacked} sharedFloor=${report.sharedFloor.length}`);
+      for (const door of report.doors) {
+        const swing = `swing x[${door.swing.x}] z[${door.swing.z}]`;
+        if (!door.blockedBy.length) console.log(`door ${door.mesh} ${swing} clear`);
+        for (const hit of door.blockedBy) console.log(`door ${door.mesh} ${swing} blocked by ${hit.mesh} at x[${hit.x}] z[${hit.z}]`);
+      }
+      const blocked = report.doors.filter((door) => door.blockedBy.length).length;
+      console.log(`placed=${report.placed.length} stacked=${report.stacked} sharedFloor=${report.sharedFloor.length} cornerDoors=${report.doors.length} blocked=${blocked}`);
       for (const pair of report.sharedFloor) console.log(`  ${pair.a} x ${pair.b} shares ${pair.x} x ${pair.z} in`);
       if (report.sharedFloor.length) fail('placed meshes share floor');
+      if (blocked) fail('a corner door cannot swing');
     } else {
       fail(`unknown browser action ${action}`);
     }
@@ -212,20 +219,25 @@ async function placedBounds(page) {
     const viewer = globalThis.STUDIO_VIEWER;
     if (!viewer?.skuRoot) throw new Error('no assembled SKU kitchen on the page');
     const toIn = (value) => Math.round((value / 0.0254) * 1000) / 1000;
+    const manifest = await fetch('/models/sku-v1/manifest.json').then((res) => (res.ok ? res.json() : { assets: [] })).catch(() => ({ assets: [] }));
+    const assets = new Map(manifest.assets.map((asset) => [asset.id, asset]));
     viewer.skuRoot.updateMatrixWorld(true);
     return viewer.skuRoot.children.map((node) => {
       const box = new THREE.Box3().setFromObject(node, true);
+      const asset = assets.get(node.userData.skuId);
       return {
         skuId: node.userData.skuId,
         wallId: node.userData.wallId,
         style: node.userData.style,
         position: node.position.toArray().map(toIn),
         world: { min: box.min.toArray().map(toIn), max: box.max.toArray().map(toIn) },
+        blind: asset?.frontOffset == null ? null : { depth: asset.depth, frontOffset: asset.frontOffset, frontWidth: asset.frontWidth },
       };
     });
   });
   const eps = 0.01;
   const span = (a, b, axis) => Math.min(a.max[axis], b.max[axis]) - Math.max(a.min[axis], b.min[axis]);
+  const round = (value) => Math.round(value * 1000) / 1000;
   const name = (item) => `${item.wallId}/${item.skuId}@${item.position[0]},${item.position[2]}`;
   const sharedFloor = [];
   let stacked = 0;
@@ -237,10 +249,25 @@ async function placedBounds(page) {
       const z = span(a, b, 2);
       if (x <= eps || z <= eps) continue;
       if (span(a, b, 1) <= eps) stacked++;
-      else sharedFloor.push({ a: name(placed[i]), b: name(placed[j]), x: Math.round(x * 1000) / 1000, z: Math.round(z * 1000) / 1000 });
+      else sharedFloor.push({ a: name(placed[i]), b: name(placed[j]), x: round(x), z: round(z) });
     }
   }
-  return { url: page.url(), placed, stacked, sharedFloor };
+  const doors = placed.filter((item) => item.blind).map((item) => {
+    const { min, max } = item.world;
+    const { depth, frontOffset, frontWidth } = item.blind;
+    const swing = item.wallId === 'sink'
+      ? { min: [min[0] + depth, min[1], max[2] - frontOffset - frontWidth], max: [min[0] + depth + frontWidth, max[1], max[2] - frontOffset] }
+      : { min: [min[0] + frontOffset, min[1], min[2] + depth], max: [min[0] + frontOffset + frontWidth, max[1], min[2] + depth + frontWidth] };
+    const blockedBy = placed
+      .filter((other) => other !== item && span(swing, other.world, 0) > eps && span(swing, other.world, 1) > eps && span(swing, other.world, 2) > eps)
+      .map((other) => ({
+        mesh: name(other),
+        x: [round(Math.max(swing.min[0], other.world.min[0])), round(Math.min(swing.max[0], other.world.max[0]))],
+        z: [round(Math.max(swing.min[2], other.world.min[2])), round(Math.min(swing.max[2], other.world.max[2]))],
+      }));
+    return { mesh: name(item), swing: { x: [round(swing.min[0]), round(swing.max[0])], z: [round(swing.min[2]), round(swing.max[2])] }, blockedBy };
+  });
+  return { url: page.url(), placed, stacked, sharedFloor, doors };
 }
 
 async function connect(instance) {
