@@ -106,11 +106,12 @@ async function doctor() {
   const instance = await readInstance();
   if (BLOCKED.some((origin) => instance.url.startsWith(origin))) fail(`refusing ${instance.url}`);
   const html = await getText(instance.url);
-  const hasCore = html.includes('id="measure-open"') && html.includes('data-mode="layout"') && html.includes('id="job-download"');
-  const v1 = hasCore && (html.includes('id="template-list"') || html.includes('id="showroom-ready"') || html.includes('Tape the L.'));
+  const hasCore = html.includes('id="measure-open"') && html.includes('data-view="kitchen"') && html.includes('id="job-download"');
+  const v1 = hasCore && html.includes('id="template-list"');
   const title = /<title>([^<]+)</.exec(html)?.[1] || '';
   if (title !== 'Cabinet studio · Turbo Cabinets') fail(`unexpected title ${title}`);
-  if (!v1) fail('page is not V1 (missing showroom, Measure, Layout, or Save job)');
+  if (!v1) fail('page is not V1 (missing welcome, Room sizes, Kitchen view, or Save job)');
+  if (html.includes('data-mode=')) fail('page still has the preview mode bar');
   const { page, browser: chrome } = await connect(instance);
   const errorHidden = await page.$eval('#load-error', (el) => el.hidden).catch(() => false);
   const phase = await page.$eval('body', (el) => el.dataset.phase || '').catch(() => '');

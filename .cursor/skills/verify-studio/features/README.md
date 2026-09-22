@@ -13,7 +13,7 @@ This directory is the maintained source for verifying V1 user-facing behavior. R
 
 ## Driving conventions
 
-- Prefer `#id`, `[data-mode]`, `[data-bank]`, `[data-view]`, and accessible names.
+- Prefer `#id`, `[data-bank]`, `[data-view]`, and accessible names.
 - Treat every command as literal.
 - Run browser actions through `control-studio browser`.
 - Keep proof files under `.cursor/skills/verify-studio/artifacts/`.
@@ -40,6 +40,6 @@ Each feature file starts with an H1 title and one paragraph. It then uses exactl
 - [Measure first](./measure-first.md) covers the welcome, taping both walls, hiding layout cards until Confirm, and picking a solved kitchen.
 - [Measure the L](./measure-l.md) covers opening Your two walls from the welcome, entering wall lengths, confirming, and landing on the template cards.
 - [Choose cabinets](./choose-cabinets.md) covers upper and lower style and finish, plus Use on both, after a layout is picked.
-- [Preview modes](./preview-modes.md) covers Interactive 3D, High-quality images, Layout, Kitchen, and Close-up.
+- [Preview](./preview-modes.md) covers Kitchen, Close-up, orbit, and Save view. There is no preview mode row.
 - [Save a job](./save-job.md) covers downloading Room + Layout after a picked template.
 - [Choose surfaces](./choose-surfaces.md) covers countertop and flooring swatches.

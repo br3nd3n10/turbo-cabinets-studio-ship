@@ -10,7 +10,7 @@ Save a job downloads a JSON file of the confirmed room and the picked layout so 
 
 ## How to get to it (user POV)
 
-- Choose **Save job ↓** in the mode bar after a layout card is picked. That button stays hidden until then.
+- Choose **Save job ↓** at the right of the view bar, next to Save view, after a layout card is picked. That button stays hidden until then.
 - Choose **Save job ↓** on the Check these lengths step.
 
 ## Driving it with control-studio
@@ -28,7 +28,7 @@ Preconditions:
 
 ## Gotchas
 
-- Confirm alone does not enable the mode-bar Save job button. A template pick does.
-- The confirm-step Save job uses `#measure-job-download`. The mode-bar control is `#job-download`.
+- Confirm alone does not enable the view-bar Save job button. A template pick does.
+- The confirm-step Save job uses `#measure-job-download`. The view-bar control is `#job-download`.
 - The download lands in the isolated profile's download directory, not the user's Downloads folder.
 - Each `browser` command re-applies the Chrome download path. A click without that path can look like a successful Save job with an empty folder.

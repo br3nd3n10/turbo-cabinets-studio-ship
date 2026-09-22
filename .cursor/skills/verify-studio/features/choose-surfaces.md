@@ -19,7 +19,7 @@ Preconditions:
 
 - Doctor reports `v1=true`.
 - If `#welcome` is visible, complete Measure first through Confirm so the template cards and surfaces are on screen.
-- The session is in Interactive 3D or High-quality images.
+- A layout is picked, so the assembled kitchen is on the canvas.
 
 - **Countertop.** Choose Charcoal. Click the counter swatch that sets `#counter-name` to `Charcoal`. `#scene-canvas` `data-counter` becomes `charcoal` after the kitchen finishes loading.
 - **Floor.** Choose Dark walnut. Click the floor swatch that sets `#floor-name` to `Dark walnut`. The canvas `data-floor` becomes `dark-walnut`.

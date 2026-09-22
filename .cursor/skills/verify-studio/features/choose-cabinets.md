@@ -22,7 +22,7 @@ Preconditions:
 
 - Doctor reports `v1=true`.
 - If `#welcome` is visible, complete Measure first through a template pick.
-- The session is in Interactive 3D.
+- A layout is picked, so the assembled kitchen is on the canvas.
 
 - **Select lower bank.** Choose **Lower cabinets**. Run `control-studio browser click --selector "[data-bank=lower]"`. `#style-label` reads `Lower door style`.
 - **Change style.** Choose Slim Shaker. Run `control-studio browser fill --selector "#style" --value "slim-shaker"`. `#lower-summary` includes `Slim Shaker`.

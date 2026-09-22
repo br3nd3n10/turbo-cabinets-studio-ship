@@ -7,13 +7,13 @@ description: Drive Turbo Cabinets Studio V1 (web kitchen builder) to prove user-
 
 Drive the isolated V1 kitchen builder the way a customer would. Do not drive Noah's live site.
 
-V1 starts with a tape. A welcome explains the job, then the customer measures both walls and openings, confirms, picks a layout that solves that room from current inventory, then keeps swapping cabinets. Door style and color stay available. Layout templates stay hidden until Confirm. Layout, Room sizes, and Save job stay in the DOM. They stay hidden until a template is picked, or they appear immediately when a room and a picked layout already exist.
+V1 starts with a tape. A welcome explains the job, then the customer measures both walls and openings, confirms, picks a layout that solves that room from current inventory, then keeps swapping cabinets. Door style and color stay available. Layout cards stay hidden until Confirm. The picked layout is the kitchen, and 3D is the only view. Room sizes and Save job sit in the view bar next to Kitchen, Close-up, and Save view. They stay in the DOM and hide until the phase allows them: Room sizes after Confirm, Save job after a pick.
 
 ## Surfaces
 
 Primary surface is live V1 at `https://turbo-cabinets-studio-v1.vercel.app/`. That host is measurement-first. Models stay on the V1 origin. JS and CSS load from the ship repo pin.
 
-Noah's production page `https://turbocabinets.net/studio` embeds the older app at `https://turbo-cabinets-studio.vercel.app/`. That embed has no Measure, Layout, or Save job. Doctor fails if those controls are missing.
+Noah's production page `https://turbocabinets.net/studio` embeds the older app at `https://turbo-cabinets-studio.vercel.app/`. That embed has no Room sizes, template cards, or Save job. Doctor fails if those controls are missing, and it fails if a preview mode row (`[data-mode]`) is present.
 
 This repo holds the V1 JS, CSS, catalog, `showroom.js` phase machine, `pack.js` wall packer, `templates.js` layout cards, `kitchen.js` SKU assembler, and `models/sku-v1` meshes. The V1 HTML shell is `index.html`. Live V1 pins JS/CSS from this repo and rewrites `/models/sku-v1` to that pin. Measured-v3 GLBs and section images stay on the original V1 host.
 
@@ -54,7 +54,7 @@ Run this first whenever anything looks off.
 Doctor is worth driving only when all of these hold:
 
 - The page title is `Cabinet studio · Turbo Cabinets`
-- `#measure-open`, `[data-mode=layout]`, and `#job-download` exist
+- `#measure-open`, `[data-view=kitchen]`, and `#job-download` exist, and no `[data-mode]` button does
 - The page has `#welcome` and `#template-list`
 - `#measure-title` reads `Your two walls.`
 - A fresh profile starts at `phase=welcome`
@@ -65,18 +65,18 @@ Refuse to drive `https://turbo-cabinets-studio.vercel.app/` or `https://turbocab
 
 ## Drive
 
-Use `control-studio browser`. Prefer IDs, `data-mode`, `data-bank`, `data-view`, and accessible names over coordinates.
+Use `control-studio browser`. Prefer IDs, `data-bank`, `data-view`, and accessible names over coordinates.
 
 Clicks use the element's own `click()`. That still fires when CSS hides a node. Do not open Room sizes from `#measure-open` during `welcome`. Use `#welcome-enter`. Do not open `#template-list` before Confirm.
 
 Customer path on a fresh profile:
 
 1. Read the welcome. Heading is `Tape both walls first. We'll show kitchens that fit.`
-2. Choose **Tape my kitchen** (`#welcome-enter`). Phase becomes `sizing`. `#measure` opens. Layout, Save job, and `#template-list` are not shown.
+2. Choose **Tape my kitchen** (`#welcome-enter`). Phase becomes `sizing`. `#measure` opens. Room sizes, Save job, and `#template-list` are not shown.
 3. Type the stove wall and the sink wall. Add openings if the recipe needs them. Confirm.
-4. Phase becomes `templates`. A few layout cards are visible. Layout and Save job stay hidden.
-5. Choose one card (`#template-list [data-template]`). Phase becomes `ready`. Interactive 3D is pressed. `#scene-canvas` `data-preview` is `sku`. `#job-download` is enabled.
-6. Keep swapping cabinets from the other cards, or change door style and color. The assembled kitchen updates. High-quality images show this kitchen, not the old showroom set.
+4. Phase becomes `templates`. A few layout cards are visible. Save job stays hidden.
+5. Choose one card (`#template-list [data-template]`). Phase becomes `ready`. `#scene-canvas` `data-preview` is `sku`. `#job-download` is enabled.
+6. Keep swapping cabinets from the other cards, or change door style and color. The assembled kitchen updates. Save view downloads a still of this kitchen.
 
 ```sh
 .cursor/skills/verify-studio/scripts/control-studio browser click --selector '#welcome-enter'
@@ -101,11 +101,11 @@ Proof standards:
 
 - Exercise the real UI path. Do not set `localStorage` and call that a save.
 - Capture the action and the resulting state. A final screenshot alone is not enough.
-- For Measure first, the welcome heading is visible, then after Tape my kitchen `#measure` is open and `#template-list` is not shown. After Confirm the cards are visible. After a pick, Interactive 3D is pressed, `#scene-canvas` `data-preview` is `sku`, and `#job-download` is enabled.
+- For Measure first, the welcome heading is visible, then after Tape my kitchen `#measure` is open and `#template-list` is not shown. After Confirm the cards are visible. After a pick, `#scene-canvas` `data-preview` is `sku` and `#job-download` is enabled.
 - For Measure L, the confirm dialog must show `Stove wall 169.5 in` and `Sink wall 128.25 in`.
 - For Save job, observe the downloaded `turbo-job-*.json` in the isolated Chrome download directory. Wall ids in that file stay `range` and `sink`. The file has `room` and `layout` and no prices.
 - For a finish or door-style change, `#scene-canvas` `data-upper-style` / `data-lower-style` and `data-*-finish` must match the controls. Swapping a template card must change `data-layout-skus`.
-- After a pick, High-quality images are a still of this assembled kitchen. `#mode-caption` reads `This kitchen`. `#live-stage` stays visible. `#image-stack` stays hidden. `#scene-canvas` `data-preview` is `sku`.
+- After a pick, Save view (`#download`) opens `#snapshot` with a PNG still of this assembled kitchen. `#live-stage` stays visible. `#image-stack` stays hidden. `#scene-canvas` `data-preview` is `sku`.
 - After a pick, `control-studio browser bounds` prints every placed mesh's world bounds in inches and exits non-zero when two meshes at the same height share floor. `stacked` counts uppers over bases, which is expected. The sink return starts at 27 in for bases and 15 in for uppers, past the range wall's corner box and a 3 in filler. `node pack.test.js` checks the same rule on the packer without a browser.
 
 ## Cleanup
