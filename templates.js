@@ -6,7 +6,7 @@ const WALL_NAME = { range: 'Stove wall', sink: 'Sink wall' };
 const CUT_FACE = { height: 34.5, depth: 24 };
 
 const BASE = [
-  { id: 'BBC39-L', kind: 'base', width: 39, height: 34.5, depth: 24 },
+  { id: 'BBC39-L', kind: 'base', width: 39, height: 34.5, depth: 24, blind: true },
   { id: 'SB36', kind: 'base', width: 36, height: 34.5, depth: 24 },
   { id: 'BWB18', kind: 'base', width: 18, height: 34.5, depth: 24 },
   { id: 'B15-L', kind: 'base', width: 15, height: 34.5, depth: 24 },

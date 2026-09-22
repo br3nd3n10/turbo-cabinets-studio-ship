@@ -6,7 +6,7 @@ const STATE_KEY = 'turbo-cabinet-studio-v5';
 const SKU_DIR = new URL('/models/sku-v1/', globalThis.location?.origin || import.meta.url);
 
 const META = {
-  'BBC39-L': { kind: 'base', width: 39, height: 34.5, depth: 24, placementBottom: 0, styles: true },
+  'BBC39-L': { kind: 'base', width: 39, height: 34.5, depth: 24, placementBottom: 0, styles: true, blind: true },
   'SB36': { kind: 'base', width: 36, height: 34.5, depth: 24, placementBottom: 0, styles: true },
   'BWB18': { kind: 'base', width: 18, height: 34.5, depth: 24, placementBottom: 0, styles: true },
   'B15-L': { kind: 'base', width: 15, height: 34.5, depth: 24, placementBottom: 0, styles: true },
@@ -16,7 +16,7 @@ const META = {
   'W3615': { kind: 'upper', width: 36, height: 15, depth: 29.5, placementBottom: 75, styles: true },
   'W3015': { kind: 'upper', width: 30, height: 15, depth: 12, placementBottom: 75, styles: true },
   'W2730': { kind: 'upper', width: 27, height: 36, depth: 12, placementBottom: 54, styles: true },
-  'WBC2730-L': { kind: 'upper', width: 27, height: 36, depth: 12, placementBottom: 54, styles: true },
+  'WBC2730-L': { kind: 'upper', width: 27, height: 36, depth: 12, placementBottom: 54, styles: true, blind: true },
   'W1230-L': { kind: 'upper', width: 12, height: 36, depth: 12, placementBottom: 54, styles: true },
   'W1230-R': { kind: 'upper', width: 12, height: 36, depth: 12, placementBottom: 54, styles: true },
   'F3-upper': { kind: 'filler', width: 3, height: 36, depth: 12, placementBottom: 54, styles: false },
@@ -26,10 +26,10 @@ const META = {
 };
 
 const UPPER_RECIPES = {
-  longer: ['W3630', 'W3015', 'W2730', 'W1230-L'],
-  more: ['W1230-L', 'W1230-R', 'W2730', 'W3015'],
-  even: ['W2730', 'W1230-L', 'W3630', 'W3015'],
-  tight: ['W3630', 'W3015', 'W2730', 'F3-upper', 'W1230-L'],
+  longer: ['WBC2730-L', 'W3630', 'W3015', 'W2730', 'W1230-L'],
+  more: ['WBC2730-L', 'W1230-L', 'W1230-R', 'W2730', 'W3015'],
+  even: ['WBC2730-L', 'W2730', 'W1230-L', 'W3630', 'W3015'],
+  tight: ['WBC2730-L', 'W3630', 'W3015', 'W2730', 'F3-upper', 'W1230-L'],
 };
 
 const OPENING_SKU = { range: 'RANGE1.30', dishwasher: 'DISH-IQ6', fridge: 'REF.2D.36' };
