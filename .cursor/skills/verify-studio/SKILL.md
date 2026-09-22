@@ -15,7 +15,7 @@ Primary surface is live V1 at `https://turbo-cabinets-studio-v1.vercel.app/`. Th
 
 Noah's production page `https://turbocabinets.net/studio` embeds the older app at `https://turbo-cabinets-studio.vercel.app/`. That embed has no Measure, Layout, or Save job. Doctor fails if those controls are missing.
 
-This repo holds the V1 JS, CSS, catalog, `showroom.js` phase machine, and `templates.js` packer. The V1 HTML shell is `index.html`. Measured GLBs and section images live on the V1 host, not in this git tree.
+This repo holds the V1 JS, CSS, catalog, `showroom.js` phase machine, `templates.js` packer, and `kitchen.js` SKU assembler. The V1 HTML shell is `index.html`. Measured GLBs, `models/sku-v1` meshes, and section images live on the V1 host, not in this git tree.
 
 ## Launch
 
@@ -27,7 +27,7 @@ Prefer the live V1 URL. Start an isolated Chrome profile. Do not reuse a human C
 
 Ready when doctor prints `url=https://turbo-cabinets-studio-v1.vercel.app/`, `v1=true`, and `phase=welcome`.
 
-Local overlay is for uncommitted `index.html`, `showroom.js`, `templates.js`, or `studio.css` before a V1 deploy. It copies this repo into `/tmp/studio-verify-$RUN_ID`, fetches missing `models/measured-v3` GLBs from the V1 origin, and serves that directory.
+Local overlay is for uncommitted `index.html`, `showroom.js`, `templates.js`, `kitchen.js`, or `studio.css` before a V1 deploy. It copies this repo into `/tmp/studio-verify-$RUN_ID`, fetches missing `models/measured-v3` GLBs from the V1 origin, copies local `models/sku-v1` when present, and serves that directory.
 
 ```sh
 .cursor/skills/verify-studio/scripts/control-studio launch --local
@@ -59,7 +59,7 @@ Doctor is worth driving only when all of these hold:
 - `#measure-title` reads `Your two walls.`
 - A fresh profile starts at `phase=welcome`
 - The origin is the V1 host or a local verify directory this run started
-- `#load-error` is hidden after the first kitchen load in headed Chrome. Headless Chrome may show `The kitchen could not load` because WebGL is unavailable. Measure and Save job still run.
+- `#load-error` is hidden after the first kitchen load. Headless Chrome uses SwiftShader so assembled SKU meshes can render.
 
 Refuse to drive `https://turbo-cabinets-studio.vercel.app/` or `https://turbocabinets.net/studio`. Those are the older production embed.
 
@@ -101,11 +101,11 @@ Proof standards:
 
 - Exercise the real UI path. Do not set `localStorage` and call that a save.
 - Capture the action and the resulting state. A final screenshot alone is not enough.
-- For Measure first, the welcome heading is visible, then after Tape my kitchen `#measure` is open and `#template-list` is not shown. After Confirm the cards are visible. After a pick, Layout is pressed and `#job-download` is enabled.
+- For Measure first, the welcome heading is visible, then after Tape my kitchen `#measure` is open and `#template-list` is not shown. After Confirm the cards are visible. After a pick, Interactive 3D is pressed, `#scene-canvas` `data-preview` is `sku`, and `#job-download` is enabled.
 - For Measure L, the confirm dialog must show `Stove wall 169.5 in` and `Sink wall 128.25 in`.
 - For Save job, observe the downloaded `turbo-job-*.json` in the isolated Chrome download directory. Wall ids in that file stay `range` and `sink`. The file has `room` and `layout` and no prices.
-- For a finish change, the pressed swatch name and `#scene-canvas` `data-upper-finish` or `data-lower-finish` must match.
-- High-quality images skip WebGL. Prove image mode by `#image-stack` becoming visible and `#live-stage` hidden.
+- For a finish or door-style change, `#scene-canvas` `data-upper-style` / `data-lower-style` and `data-*-finish` must match the controls. Swapping a template card must change `data-layout-skus`.
+- After a pick, High-quality images are a still of this assembled kitchen. `#mode-caption` reads `This kitchen`. `#live-stage` stays visible. `#image-stack` stays hidden. `#scene-canvas` `data-preview` is `sku`.
 
 ## Cleanup
 

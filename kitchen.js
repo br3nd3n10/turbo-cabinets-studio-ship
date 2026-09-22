@@ -2,7 +2,7 @@ import * as THREE from 'three';
 
 const IN = 0.0254;
 const STATE_KEY = 'turbo-cabinet-studio-v5';
-const SKU_DIR = new URL('./models/sku-v1/', import.meta.url);
+const SKU_DIR = new URL('/models/sku-v1/', globalThis.location?.origin || import.meta.url);
 
 const META = {
   'BBC39-L': { kind: 'base', width: 39, height: 34.5, depth: 24, placementBottom: 0, styles: true },

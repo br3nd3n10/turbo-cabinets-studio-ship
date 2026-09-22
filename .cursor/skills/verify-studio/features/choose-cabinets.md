@@ -35,4 +35,4 @@ Preconditions:
 - Style options refill when the bank changes. Read `#style-label` before picking a value.
 - **Use on both** copies only the active bank. It does not copy countertop or floor.
 - Finish swatches are unlabeled color buttons. Assert `#finish-name` and the canvas `data-*-finish` attributes, not the swatch index.
-- The kitchen GLB can take several seconds. Wait for `#loading` to hide and `#load-error` to stay hidden.
+- Assembling sku-v1 meshes can take several seconds. Wait for `#loading` to hide and `#load-error` to stay hidden. `#scene-canvas` `data-preview` stays `sku`.

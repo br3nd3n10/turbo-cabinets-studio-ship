@@ -5,7 +5,7 @@ This directory is the maintained source for verifying V1 user-facing behavior. R
 ## Baseline preconditions
 
 - Drive `https://turbo-cabinets-studio-v1.vercel.app/` unless the recipe says `--local`.
-- Live V1 is measurement-first. Welcome, then the two walls and openings, then a layout that fits, then Save job.
+- Live V1 is measurement-first. Welcome, then the two walls and openings, then a layout that fits, then an assembled sku-v1 kitchen, then Save job.
 - Run `.cursor/skills/verify-studio/scripts/control-studio doctor` and require `v1=true`.
 - Use the isolated Chrome profile from `control-studio launch`. Do not attach to a human browser.
 - Never drive `https://turbo-cabinets-studio.vercel.app/` or `https://turbocabinets.net/studio`. Those are the older production embed.
