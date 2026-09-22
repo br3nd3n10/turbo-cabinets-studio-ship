@@ -44,7 +44,7 @@ async function launch(local) {
   if (local) {
     const overlay = path.join(STATE_DIR, 'www');
     await mkdir(overlay, { recursive: true });
-    for (const name of ['index.html', 'studio.css', 'studio.js', 'showroom.js', 'templates.js', 'kitchen.js', 'pack.js', 'catalog.js', 'studio.p1.txt', 'studio.p2.txt', 'studio.p3.txt', 'studio.p4.txt']) {
+    for (const name of ['index.html', 'studio.css', 'studio.js', 'showroom.js', 'templates.js', 'kitchen.js', 'pack.js', 'inventory.js', 'catalog.js', 'studio.p1.txt', 'studio.p2.txt', 'studio.p3.txt', 'studio.p4.txt']) {
       await cp(path.join(REPO_DIR, name), path.join(overlay, name));
     }
     await fetchModels(overlay);
@@ -183,6 +183,27 @@ async function browser(args) {
       await mkdir(path.dirname(dest), { recursive: true });
       await page.screenshot({ path: dest, fullPage: true });
       console.log(`wrote ${dest}`);
+    } else if (action === 'pick') {
+      const sku = need(flags, 'sku');
+      const wall = need(flags, 'wall');
+      const point = await page.evaluate(async ({ sku, wall, start }) => {
+        const THREE = await import('three');
+        const viewer = globalThis.STUDIO_VIEWER;
+        const node = viewer?.skuRoot?.children.find((child) => child.userData.skuId === sku && child.userData.wallId === wall
+          && (start == null || Math.abs(child.userData.start - start) < 1e-6));
+        if (!node) return null;
+        viewer.skuRoot.updateMatrixWorld(true);
+        const box = new THREE.Box3().setFromObject(node, true);
+        const centre = box.getCenter(new THREE.Vector3());
+        centre.project(viewer.camera);
+        const rect = viewer.renderer.domElement.getBoundingClientRect();
+        return { x: rect.left + ((centre.x + 1) / 2) * rect.width, y: rect.top + ((1 - centre.y) / 2) * rect.height };
+      }, { sku, wall, start: flags.start == null ? null : Number(flags.start) });
+      if (!point) fail(`no placed ${sku} on the ${wall} wall`);
+      await page.mouse.click(point.x, point.y);
+      await sleep(300);
+      const selected = await page.$eval('#scene-canvas', (el) => el.dataset.selected || '').catch(() => '');
+      console.log(`picked ${wall}/${sku} at ${Math.round(point.x)},${Math.round(point.y)} selected=${selected || 'none'}`);
     } else if (action === 'bounds') {
       const report = await placedBounds(page);
       if (flags.path) {

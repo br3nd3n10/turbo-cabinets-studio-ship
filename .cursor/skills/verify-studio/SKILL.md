@@ -15,7 +15,7 @@ Primary surface is live V1 at `https://turbo-cabinets-studio-v1.vercel.app/`. Th
 
 Noah's production page `https://turbocabinets.net/studio` embeds the older app at `https://turbo-cabinets-studio.vercel.app/`. That embed has no Room sizes, template cards, or Save job. Doctor fails if those controls are missing, and it fails if a preview mode row (`[data-mode]`) is present.
 
-This repo holds the V1 JS, CSS, catalog, `showroom.js` phase machine, `pack.js` wall packer, `templates.js` layout cards, `kitchen.js` SKU assembler, and `models/sku-v1` meshes. The V1 HTML shell is `index.html`. Live V1 pins JS/CSS from this repo and rewrites `/models/sku-v1` to that pin. Measured-v3 GLBs and section images stay on the original V1 host.
+This repo holds the V1 JS, CSS, catalog, `showroom.js` phase machine, `inventory.js` SKU table, `pack.js` wall packer and swap, `templates.js` layout cards and swap panel, `kitchen.js` SKU assembler and picking, and `models/sku-v1` meshes. The V1 HTML shell is `index.html`. Live V1 pins JS/CSS from this repo and rewrites `/models/sku-v1` to that pin. Measured-v3 GLBs and section images stay on the original V1 host.
 
 ## Launch
 
@@ -76,7 +76,7 @@ Customer path on a fresh profile:
 3. Type the stove wall and the sink wall. Add openings if the recipe needs them. Confirm.
 4. Phase becomes `templates`. A few layout cards are visible. Save job stays hidden.
 5. Choose one card (`#template-list [data-template]`). Phase becomes `ready`. `#scene-canvas` `data-preview` is `sku`. `#job-download` is enabled.
-6. Keep swapping cabinets from the other cards, or change door style and color. The assembled kitchen updates. Save view downloads a still of this kitchen.
+6. Keep swapping cabinets from the other cards, click one box to swap it for another current box, or change door style and color. The assembled kitchen updates. Save view downloads a still of this kitchen.
 
 ```sh
 .cursor/skills/verify-studio/scripts/control-studio browser click --selector '#welcome-enter'
@@ -133,6 +133,7 @@ Never `pkill chrome` or `pkill python`. Kill the PIDs recorded in the run's inst
 | `browser snapshot --aria --path <file>` | Page text |
 | `browser screenshot --path <file>` | PNG |
 | `browser bounds [--path <file>]` | World bounds of each placed SKU mesh in inches, fails when meshes share floor, a corner door cannot swing, or the inside corner shows open floor |
+| `browser pick --sku <id> --wall <range or sink> [--start <in>]` | Real mouse click on that placed mesh, opens Swap this cabinet |
 | `stop` | Tear down this run only |
 
 ## Feature map

@@ -41,5 +41,6 @@ Each feature file starts with an H1 title and one paragraph. It then uses exactl
 - [Measure the L](./measure-l.md) covers opening Your two walls from the welcome, entering wall lengths, confirming, and landing on the template cards.
 - [Choose cabinets](./choose-cabinets.md) covers upper and lower style and finish, plus Use on both, after a layout is picked.
 - [Preview](./preview-modes.md) covers Kitchen, Close-up, orbit, and Save view. There is no preview mode row.
+- [Swap a cabinet](./swap-cabinet.md) covers clicking a placed box, the boxes that fit there, and the refit of that run.
 - [Save a job](./save-job.md) covers downloading Room + Layout after a picked template.
 - [Choose surfaces](./choose-surfaces.md) covers countertop and flooring swatches.
