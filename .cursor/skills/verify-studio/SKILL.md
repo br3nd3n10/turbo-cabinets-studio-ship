@@ -15,7 +15,7 @@ Primary surface is live V1 at `https://turbo-cabinets-studio-v1.vercel.app/`. Th
 
 Noah's production page `https://turbocabinets.net/studio` embeds the older app at `https://turbo-cabinets-studio.vercel.app/`. That embed has no Measure, Layout, or Save job. Doctor fails if those controls are missing.
 
-This repo holds the V1 JS, CSS, catalog, `showroom.js` phase machine, `templates.js` packer, `kitchen.js` SKU assembler, and `models/sku-v1` meshes. The V1 HTML shell is `index.html`. Live V1 pins JS/CSS from this repo and rewrites `/models/sku-v1` to that pin. Measured-v3 GLBs and section images stay on the original V1 host.
+This repo holds the V1 JS, CSS, catalog, `showroom.js` phase machine, `pack.js` wall packer, `templates.js` layout cards, `kitchen.js` SKU assembler, and `models/sku-v1` meshes. The V1 HTML shell is `index.html`. Live V1 pins JS/CSS from this repo and rewrites `/models/sku-v1` to that pin. Measured-v3 GLBs and section images stay on the original V1 host.
 
 ## Launch
 
@@ -27,7 +27,7 @@ Prefer the live V1 URL. Start an isolated Chrome profile. Do not reuse a human C
 
 Ready when doctor prints `url=https://turbo-cabinets-studio-v1.vercel.app/`, `v1=true`, and `phase=welcome`.
 
-Local overlay is for uncommitted `index.html`, `showroom.js`, `templates.js`, `kitchen.js`, or `studio.css` before a V1 deploy. It copies this repo into `/tmp/studio-verify-$RUN_ID`, fetches missing `models/measured-v3` GLBs from the V1 origin, copies local `models/sku-v1` when present, and serves that directory.
+Local overlay is for uncommitted `index.html`, `showroom.js`, `templates.js`, `kitchen.js`, `pack.js`, or `studio.css` before a V1 deploy. It copies this repo into `/tmp/studio-verify-$RUN_ID`, fetches missing `models/measured-v3` GLBs from the V1 origin, copies local `models/sku-v1` when present, and serves that directory.
 
 ```sh
 .cursor/skills/verify-studio/scripts/control-studio launch --local
@@ -106,6 +106,7 @@ Proof standards:
 - For Save job, observe the downloaded `turbo-job-*.json` in the isolated Chrome download directory. Wall ids in that file stay `range` and `sink`. The file has `room` and `layout` and no prices.
 - For a finish or door-style change, `#scene-canvas` `data-upper-style` / `data-lower-style` and `data-*-finish` must match the controls. Swapping a template card must change `data-layout-skus`.
 - After a pick, High-quality images are a still of this assembled kitchen. `#mode-caption` reads `This kitchen`. `#live-stage` stays visible. `#image-stack` stays hidden. `#scene-canvas` `data-preview` is `sku`.
+- After a pick, `control-studio browser bounds` prints every placed mesh's world bounds in inches and exits non-zero when two meshes at the same height share floor. `stacked` counts uppers over bases, which is expected. The sink return starts at 27 in for bases and 15 in for uppers, past the range wall's corner box and a 3 in filler. `node pack.test.js` checks the same rule on the packer without a browser.
 
 ## Cleanup
 
@@ -131,6 +132,7 @@ Never `pkill chrome` or `pkill python`. Kill the PIDs recorded in the run's inst
 | `browser press --key <name>` | Send a key |
 | `browser snapshot --aria --path <file>` | Page text |
 | `browser screenshot --path <file>` | PNG |
+| `browser bounds [--path <file>]` | World bounds of each placed SKU mesh in inches, fails when meshes share floor |
 | `stop` | Tear down this run only |
 
 ## Feature map

@@ -44,7 +44,7 @@ async function launch(local) {
   if (local) {
     const overlay = path.join(STATE_DIR, 'www');
     await mkdir(overlay, { recursive: true });
-    for (const name of ['index.html', 'studio.css', 'studio.js', 'showroom.js', 'templates.js', 'kitchen.js', 'catalog.js', 'studio.p1.txt', 'studio.p2.txt', 'studio.p3.txt', 'studio.p4.txt']) {
+    for (const name of ['index.html', 'studio.css', 'studio.js', 'showroom.js', 'templates.js', 'kitchen.js', 'pack.js', 'catalog.js', 'studio.p1.txt', 'studio.p2.txt', 'studio.p3.txt', 'studio.p4.txt']) {
       await cp(path.join(REPO_DIR, name), path.join(overlay, name));
     }
     await fetchModels(overlay);
@@ -182,12 +182,64 @@ async function browser(args) {
       await mkdir(path.dirname(dest), { recursive: true });
       await page.screenshot({ path: dest, fullPage: true });
       console.log(`wrote ${dest}`);
+    } else if (action === 'bounds') {
+      const report = await placedBounds(page);
+      if (flags.path) {
+        const dest = path.resolve(flags.path);
+        await mkdir(path.dirname(dest), { recursive: true });
+        await writeFile(dest, JSON.stringify(report, null, 1));
+        console.log(`wrote ${dest}`);
+      }
+      for (const item of report.placed) {
+        const { min, max } = item.world;
+        console.log(`${item.wallId} ${item.skuId} x[${min[0]},${max[0]}] y[${min[1]},${max[1]}] z[${min[2]},${max[2]}]`);
+      }
+      console.log(`placed=${report.placed.length} stacked=${report.stacked} sharedFloor=${report.sharedFloor.length}`);
+      for (const pair of report.sharedFloor) console.log(`  ${pair.a} x ${pair.b} shares ${pair.x} x ${pair.z} in`);
+      if (report.sharedFloor.length) fail('placed meshes share floor');
     } else {
       fail(`unknown browser action ${action}`);
     }
   } finally {
     await chrome.disconnect();
   }
+}
+
+async function placedBounds(page) {
+  const placed = await page.evaluate(async () => {
+    const THREE = await import('three');
+    const viewer = globalThis.STUDIO_VIEWER;
+    if (!viewer?.skuRoot) throw new Error('no assembled SKU kitchen on the page');
+    const toIn = (value) => Math.round((value / 0.0254) * 1000) / 1000;
+    viewer.skuRoot.updateMatrixWorld(true);
+    return viewer.skuRoot.children.map((node) => {
+      const box = new THREE.Box3().setFromObject(node, true);
+      return {
+        skuId: node.userData.skuId,
+        wallId: node.userData.wallId,
+        style: node.userData.style,
+        position: node.position.toArray().map(toIn),
+        world: { min: box.min.toArray().map(toIn), max: box.max.toArray().map(toIn) },
+      };
+    });
+  });
+  const eps = 0.01;
+  const span = (a, b, axis) => Math.min(a.max[axis], b.max[axis]) - Math.max(a.min[axis], b.min[axis]);
+  const name = (item) => `${item.wallId}/${item.skuId}@${item.position[0]},${item.position[2]}`;
+  const sharedFloor = [];
+  let stacked = 0;
+  for (let i = 0; i < placed.length; i++) {
+    for (let j = i + 1; j < placed.length; j++) {
+      const a = placed[i].world;
+      const b = placed[j].world;
+      const x = span(a, b, 0);
+      const z = span(a, b, 2);
+      if (x <= eps || z <= eps) continue;
+      if (span(a, b, 1) <= eps) stacked++;
+      else sharedFloor.push({ a: name(placed[i]), b: name(placed[j]), x: Math.round(x * 1000) / 1000, z: Math.round(z * 1000) / 1000 });
+    }
+  }
+  return { url: page.url(), placed, stacked, sharedFloor };
 }
 
 async function connect(instance) {
