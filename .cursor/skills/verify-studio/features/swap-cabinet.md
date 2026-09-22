@@ -32,6 +32,6 @@ Preconditions:
 ## Gotchas
 
 - A click through OrbitControls marks the view as `Custom 3D view`. Reset returns to Kitchen. The selection is unaffected.
-- `pick` uses a real mouse click at the mesh centre. A box hidden behind another mesh from the current camera may pick the front one. Choose Kitchen view first.
+- `pick` uses a real mouse click aimed at the box's front face. It fails with `not clickable from this camera` when a neighbour's door or the orbit tools cover every aim point. Orbit, zoom, or choose Kitchen view first. From the default Kitchen view the stove bases past the range sit under the orbit tools.
 - `W3615` is 29.5 in deep. It is offered past the corner but refused for the first sink upper because it would stand in the blind upper door's swing.
 - Swapping never moves the blind corner box or its fillers. `bounds` must keep `cornerGap=0` and `blocked=0` after every swap.

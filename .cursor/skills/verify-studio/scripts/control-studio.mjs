@@ -195,10 +195,26 @@ async function browser(args) {
         viewer.skuRoot.updateMatrixWorld(true);
         const box = new THREE.Box3().setFromObject(node, true);
         const centre = box.getCenter(new THREE.Vector3());
-        centre.project(viewer.camera);
         const rect = viewer.renderer.domElement.getBoundingClientRect();
-        return { x: rect.left + ((centre.x + 1) / 2) * rect.width, y: rect.top + ((1 - centre.y) / 2) * rect.height };
+        const ray = new THREE.Raycaster();
+        // Aim at the box's front face, not its volume centre, so a neighbour's door cannot
+        // stand between the camera and the aim point. Try a few heights on that face.
+        const front = (y) => (wall === 'sink' ? new THREE.Vector3(box.max.x - 0.002, y, centre.z) : new THREE.Vector3(centre.x, y, box.max.z - 0.002));
+        const span = box.max.y - box.min.y;
+        const aims = [front(centre.y), front(box.min.y + span * 0.7), front(box.min.y + span * 0.3), centre];
+        for (const aim of aims) {
+          const ndc = aim.clone().project(viewer.camera);
+          ray.setFromCamera(new THREE.Vector2(ndc.x, ndc.y), viewer.camera);
+          const hit = ray.intersectObjects(viewer.skuRoot.children, true)[0];
+          let owner = hit?.object;
+          while (owner && owner.parent !== viewer.skuRoot) owner = owner.parent;
+          const x = rect.left + ((ndc.x + 1) / 2) * rect.width;
+          const y = rect.top + ((1 - ndc.y) / 2) * rect.height;
+          if (owner === node && document.elementFromPoint(x, y) === viewer.renderer.domElement) return { x, y };
+        }
+        return { hidden: true };
       }, { sku, wall, start: flags.start == null ? null : Number(flags.start) });
+      if (point?.hidden) fail(`${wall}/${sku} is not clickable from this camera (behind a mesh or under the orbit tools); orbit, zoom, or choose Kitchen view first`);
       if (!point) fail(`no placed ${sku} on the ${wall} wall`);
       await page.mouse.click(point.x, point.y);
       await sleep(300);
