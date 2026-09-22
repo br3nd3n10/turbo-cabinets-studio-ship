@@ -1,5 +1,4 @@
 const STATE = 'turbo-cabinet-studio-v5';
-const ENTERED = 'turbo-showroom-entered';
 const TITLES = { form: 'Your two walls.', confirm: 'Check these lengths.' };
 const WALLS = { range: 'Stove wall', sink: 'Sink wall' };
 
@@ -11,22 +10,27 @@ function hasRoom() {
   }
 }
 
+function hasTemplate() {
+  return Boolean(globalThis.STUDIO_HAS_TEMPLATE?.());
+}
+
 function phase() {
   return document.body.dataset.phase;
 }
 
 function setPhase(next) {
   document.body.dataset.phase = next;
-  if (next === 'showroom' || next === 'ready') sessionStorage.setItem(ENTERED, '1');
   const welcome = document.querySelector('#welcome');
   if (welcome) welcome.hidden = next !== 'welcome';
+  const templates = document.querySelector('#templates');
+  if (templates) templates.hidden = next !== 'templates' && next !== 'ready';
   const main = document.querySelector('main');
   if (main) main.inert = next === 'welcome';
 }
 
 function startPhase() {
-  if (hasRoom()) setPhase('ready');
-  else if (sessionStorage.getItem(ENTERED)) setPhase('showroom');
+  if (hasRoom() && hasTemplate()) setPhase('ready');
+  else if (hasRoom()) setPhase('templates');
   else setPhase('welcome');
 }
 
@@ -48,6 +52,12 @@ function polishMeasure() {
   }
 }
 
+function fallbackPhase() {
+  if (hasRoom() && hasTemplate()) return 'ready';
+  if (hasRoom()) return 'templates';
+  return 'welcome';
+}
+
 function openSizes() {
   setPhase('sizing');
   const open = document.querySelector('#measure-open');
@@ -57,21 +67,20 @@ function openSizes() {
     polishMeasure();
     if (dialog?.open) return;
     if (n < 40) setTimeout(() => tryOpen(n + 1), 50);
-    else setPhase('showroom');
+    else setPhase(fallbackPhase());
   };
   tryOpen(0);
 }
 
 function onMeasureClose() {
-  if (!document.querySelector('#job-download')?.disabled) setPhase('ready');
-  else if (phase() === 'sizing') setPhase('showroom');
+  if (phase() === 'templates' || phase() === 'ready') return;
+  setPhase(fallbackPhase());
 }
 
 function boot() {
+  globalThis.STUDIO_SET_PHASE = setPhase;
   startPhase();
-  document.querySelector('#welcome-enter')?.addEventListener('click', () => setPhase('showroom'));
-  document.querySelector('#welcome-back')?.addEventListener('click', () => setPhase('welcome'));
-  document.querySelector('#showroom-ready')?.addEventListener('click', openSizes);
+  document.querySelector('#welcome-enter')?.addEventListener('click', openSizes);
   document.querySelector('#measure')?.addEventListener('close', onMeasureClose);
   const title = document.querySelector('#measure-title');
   if (title) new MutationObserver(polishMeasure).observe(title, { childList: true, characterData: true, subtree: true });

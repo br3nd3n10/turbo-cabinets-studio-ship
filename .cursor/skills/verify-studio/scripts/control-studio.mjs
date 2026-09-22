@@ -44,7 +44,7 @@ async function launch(local) {
   if (local) {
     const overlay = path.join(STATE_DIR, 'www');
     await mkdir(overlay, { recursive: true });
-    for (const name of ['index.html', 'studio.css', 'studio.js', 'showroom.js', 'catalog.js', 'studio.p1.txt', 'studio.p2.txt', 'studio.p3.txt', 'studio.p4.txt']) {
+    for (const name of ['index.html', 'studio.css', 'studio.js', 'showroom.js', 'templates.js', 'catalog.js', 'studio.p1.txt', 'studio.p2.txt', 'studio.p3.txt', 'studio.p4.txt']) {
       await cp(path.join(REPO_DIR, name), path.join(overlay, name));
     }
     await fetchModels(overlay);
@@ -104,7 +104,7 @@ async function doctor() {
   if (BLOCKED.some((origin) => instance.url.startsWith(origin))) fail(`refusing ${instance.url}`);
   const html = await getText(instance.url);
   const hasCore = html.includes('id="measure-open"') && html.includes('data-mode="layout"') && html.includes('id="job-download"');
-  const v1 = hasCore && (html.includes('id="showroom-ready"') || html.includes('Tape the L.'));
+  const v1 = hasCore && (html.includes('id="template-list"') || html.includes('id="showroom-ready"') || html.includes('Tape the L.'));
   const title = /<title>([^<]+)</.exec(html)?.[1] || '';
   if (title !== 'Cabinet studio · Turbo Cabinets') fail(`unexpected title ${title}`);
   if (!v1) fail('page is not V1 (missing showroom, Measure, Layout, or Save job)');

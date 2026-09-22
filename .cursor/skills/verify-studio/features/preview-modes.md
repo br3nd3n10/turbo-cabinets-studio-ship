@@ -20,8 +20,8 @@ Preview modes let a customer look at the same kitchen as Interactive 3D, High-qu
 Preconditions:
 
 - Doctor reports `v1=true`.
-- If `#welcome` is visible, choose **Browse looks** first.
-- Layout proofs first complete Measure the L. Layout is hidden until that Confirm.
+- If `#welcome` is visible, complete Measure first through a template pick.
+- Layout proofs first complete Measure first. Layout is hidden until a template is picked.
 
 - **Interactive.** Choose **Interactive 3D**. Run `control-studio browser click --selector "[data-mode=interactive]"`. `#mode-caption` reads `Interactive 3D`. `.orbit-tools` is visible. `#live-stage` is visible.
 - **Close-up.** Choose **Close-up**. Run `control-studio browser click --selector "[data-view=detail]"`. That button is pressed.

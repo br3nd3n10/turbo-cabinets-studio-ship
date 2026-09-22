@@ -12,19 +12,21 @@
 <script src="catalog.js"></script>
 <script type="module" src="studio.js"></script>
 <script type="module" src="showroom.js"></script>
+<script type="module" src="templates.js"></script>
 </head>
 <body data-phase="welcome">
 <section id="welcome" class="welcome" aria-labelledby="welcome-title">
  <div class="welcome-inner">
   <p class="eyebrow">Turbo Cabinets</p>
-  <h1 id="welcome-title">Find a look first. We'll fit it to your room after.</h1>
-  <p class="welcome-lead">Turbo models your kitchen from two cabinet walls and a look. Pick doors and colors until the kitchen feels like yours. When you like it, add the stove wall and the sink wall. Then send that look plus those two numbers to the shop.</p>
+  <h1 id="welcome-title">Tape both walls first. We'll show kitchens that fit.</h1>
+  <p class="welcome-lead">Turbo models your kitchen from the stove wall, the sink wall, and the openings you tape. Confirm those lengths, then pick a layout that solves that room from current cabinets. After that you can keep swapping cabinets, doors, and color.</p>
   <ol class="welcome-steps">
-   <li>Pick a door style and a color. The kitchen updates as you go.</li>
-   <li>When you are ready, add the stove wall and the sink wall.</li>
-   <li>Send that look plus those two numbers to the shop.</li>
+   <li>Tape the stove wall, the sink wall, and every opening.</li>
+   <li>Confirm those lengths.</li>
+   <li>Pick one of the kitchens that fit that room.</li>
+   <li>Keep swapping cabinets, doors, and color. Save the job when you are ready.</li>
   </ol>
-  <button type="button" class="showroom-next" id="welcome-enter">Browse looks</button>
+  <button type="button" class="showroom-next" id="welcome-enter">Tape my kitchen</button>
  </div>
 </section>
 <main>
@@ -39,7 +41,13 @@
   <div class="image-caption"><span id="image-title" aria-live="polite"></span><span id="mode-caption">Interactive 3D</span></div>
  </section>
  <aside class="options" aria-label="Kitchen design options">
-  <div class="options-intro"><div class="eyebrow">Showroom</div><h1>Find a look you like.</h1><p class="showroom-lead">Play with doors and colors. The kitchen updates as you go. Room sizes come next, only when you want Turbo to build this look in your space.</p></div>
+  <div class="options-intro"><div class="eyebrow">Kitchen</div><h1>Doors and color stay yours.</h1><p class="showroom-lead">Tape the room first. After you confirm, pick a layout that fits. Then keep swapping cabinets, doors, and color.</p></div>
+  <section id="templates" hidden>
+   <div class="eyebrow">Layouts that fit</div>
+   <h2 id="templates-title">Pick a kitchen that solves your room.</h2>
+   <p class="showroom-lead">These runs use current cabinet sizes on the walls you just confirmed. Choose one, then keep swapping cabinets.</p>
+   <div id="template-list" class="template-list"></div>
+  </section>
   <div class="cabinet-controls">
   <div class="layout-field">
    <label for="layout" id="layout-label">Layout</label><select id="layout" aria-labelledby="layout-label"></select>
@@ -62,16 +70,12 @@
    <div id="floor-swatches" class="swatches surface-swatches" role="group" aria-labelledby="floor-label"></div>
    <p class="note">Countertops and flooring are styling suggestions, not Turbo Cabinets products. Colors and textures are approximate.</p>
   </div>
-  <div id="showroom-cta" class="showroom-cta">
-   <button type="button" id="showroom-ready">I like this. Add my room sizes</button>
-   <button type="button" class="quiet" id="welcome-back">Back to why</button>
-  </div>
  </aside>
 </main>
 <dialog id="snapshot" aria-labelledby="snapshot-title"><div class="dialog-top"><h2 id="snapshot-title">Your kitchen.</h2><button id="snapshot-close" class="quiet" aria-label="Close saved view">Close ×</button></div><img id="snapshot-image" alt=""><a id="snapshot-download" class="snapshot-link" download>Download PNG ↓</a></dialog>
 <dialog id="measure" aria-labelledby="measure-title">
  <div class="dialog-top"><h2 id="measure-title">Your two walls.</h2><button id="measure-close" class="quiet" aria-label="Close room sizes">Close ×</button></div>
- <p class="measure-lead" id="measure-lead">The wall with the stove, then the wall with the sink. Inches are fine.</p>
+ <p class="measure-lead" id="measure-lead">The wall with the stove, then the wall with the sink. Add each opening you taped. Inches are fine.</p>
  <form id="measure-form">
   <div class="wall-fields">
    <label for="range-length">Stove wall (inches)</label>
@@ -85,7 +89,7 @@
    <label for="measure-photos">Photos <span class="optional">optional</span></label>
    <input id="measure-photos" type="file" accept="image/*" multiple>
   </div>
-  <p class="note">These lengths are the room Turbo will model around the look you picked.</p>
+  <p class="note">Turbo will only show kitchens that fit these confirmed lengths.</p>
   <p id="measure-error" class="measure-error" role="alert" hidden></p>
   <button type="submit" id="measure-continue">Continue</button>
  </form>
