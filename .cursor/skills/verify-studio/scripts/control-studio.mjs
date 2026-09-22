@@ -201,10 +201,16 @@ async function browser(args) {
         for (const hit of door.blockedBy) console.log(`door ${door.mesh} ${swing} blocked by ${hit.mesh} at x[${hit.x}] z[${hit.z}]`);
       }
       const blocked = report.doors.filter((door) => door.blockedBy.length).length;
-      console.log(`placed=${report.placed.length} stacked=${report.stacked} sharedFloor=${report.sharedFloor.length} cornerDoors=${report.doors.length} blocked=${blocked}`);
+      for (const corner of report.corners) {
+        const gaps = corner.gaps.map((gap) => `${gap.wall} ${gap.axis}[${gap.from},${gap.to}]`).join(' ');
+        console.log(`corner ${corner.bank} gap=${corner.gapIn} in${gaps ? ` open floor at ${gaps}` : ''}`);
+      }
+      const cornerGap = report.corners.reduce((sum, corner) => sum + corner.gapIn, 0);
+      console.log(`placed=${report.placed.length} stacked=${report.stacked} sharedFloor=${report.sharedFloor.length} cornerDoors=${report.doors.length} blocked=${blocked} cornerGap=${Math.round(cornerGap * 1000) / 1000}`);
       for (const pair of report.sharedFloor) console.log(`  ${pair.a} x ${pair.b} shares ${pair.x} x ${pair.z} in`);
       if (report.sharedFloor.length) fail('placed meshes share floor');
       if (blocked) fail('a corner door cannot swing');
+      if (cornerGap > 0.01) fail('open floor at the inside corner');
     } else {
       fail(`unknown browser action ${action}`);
     }
@@ -225,12 +231,19 @@ async function placedBounds(page) {
     return viewer.skuRoot.children.map((node) => {
       const box = new THREE.Box3().setFromObject(node, true);
       const asset = assets.get(node.userData.skuId);
+      const parts = [];
+      node.traverse((mesh) => {
+        if (!mesh.isMesh) return;
+        const part = new THREE.Box3().setFromObject(mesh, true);
+        parts.push({ min: part.min.toArray().map(toIn), max: part.max.toArray().map(toIn) });
+      });
       return {
         skuId: node.userData.skuId,
         wallId: node.userData.wallId,
         style: node.userData.style,
         position: node.position.toArray().map(toIn),
         world: { min: box.min.toArray().map(toIn), max: box.max.toArray().map(toIn) },
+        parts,
         blind: asset?.frontOffset == null ? null : { depth: asset.depth, frontOffset: asset.frontOffset, frontWidth: asset.frontWidth },
       };
     });
@@ -239,17 +252,23 @@ async function placedBounds(page) {
   const span = (a, b, axis) => Math.min(a.max[axis], b.max[axis]) - Math.max(a.min[axis], b.min[axis]);
   const round = (value) => Math.round(value * 1000) / 1000;
   const name = (item) => `${item.wallId}/${item.skuId}@${item.position[0]},${item.position[2]}`;
+  const volume = (box) => (box.max[0] - box.min[0]) * (box.max[1] - box.min[1]) * (box.max[2] - box.min[2]);
+  const solid = (a, b) => span(a, b, 0) > eps && span(a, b, 1) > eps && span(a, b, 2) > eps;
+  for (const item of placed) item.carcass = item.parts.reduce((best, part) => (volume(part) > volume(best) ? part : best), item.parts[0] || item.world);
+  const hit = (box, item) => item.parts.some((part) => solid(box, part));
   const sharedFloor = [];
   let stacked = 0;
   for (let i = 0; i < placed.length; i++) {
     for (let j = i + 1; j < placed.length; j++) {
       const a = placed[i].world;
       const b = placed[j].world;
-      const x = span(a, b, 0);
-      const z = span(a, b, 2);
-      if (x <= eps || z <= eps) continue;
-      if (span(a, b, 1) <= eps) stacked++;
-      else sharedFloor.push({ a: name(placed[i]), b: name(placed[j]), x: round(x), z: round(z) });
+      if (span(a, b, 0) <= eps || span(a, b, 2) <= eps) continue;
+      if (span(a, b, 1) <= eps) { stacked++; continue; }
+      const parts = placed[i].parts.flatMap((p) => placed[j].parts.filter((q) => solid(p, q)).map((q) => [p, q]));
+      if (!parts.length) continue;
+      const x = Math.max(...parts.map(([p, q]) => span(p, q, 0)));
+      const z = Math.max(...parts.map(([p, q]) => span(p, q, 2)));
+      sharedFloor.push({ a: name(placed[i]), b: name(placed[j]), x: round(x), z: round(z) });
     }
   }
   const doors = placed.filter((item) => item.blind).map((item) => {
@@ -259,7 +278,7 @@ async function placedBounds(page) {
       ? { min: [min[0] + depth, min[1], max[2] - frontOffset - frontWidth], max: [min[0] + depth + frontWidth, max[1], max[2] - frontOffset] }
       : { min: [min[0] + frontOffset, min[1], min[2] + depth], max: [min[0] + frontOffset + frontWidth, max[1], min[2] + depth + frontWidth] };
     const blockedBy = placed
-      .filter((other) => other !== item && span(swing, other.world, 0) > eps && span(swing, other.world, 1) > eps && span(swing, other.world, 2) > eps)
+      .filter((other) => other !== item && hit(swing, other))
       .map((other) => ({
         mesh: name(other),
         x: [round(Math.max(swing.min[0], other.world.min[0])), round(Math.min(swing.max[0], other.world.max[0]))],
@@ -267,7 +286,37 @@ async function placedBounds(page) {
       }));
     return { mesh: name(item), swing: { x: [round(swing.min[0]), round(swing.max[0])], z: [round(swing.min[2]), round(swing.max[2])] }, blockedBy };
   });
-  return { url: page.url(), placed, stacked, sharedFloor, doors };
+  // Open floor at the inside corner: walk each wall from the corner to the end of its first
+  // regular box and add up every stretch no carcass covers.
+  const uncovered = (intervals, from, to) => {
+    const gaps = [];
+    let at = from;
+    for (const [start, end] of intervals.filter(([, end]) => end > from).sort((p, q) => p[0] - q[0])) {
+      if (start > at + eps && at < to) gaps.push([round(at), round(Math.min(start, to))]);
+      at = Math.max(at, end);
+      if (at >= to) break;
+    }
+    if (at < to - eps) gaps.push([round(at), round(to)]);
+    return gaps;
+  };
+  const corners = [['base', (item) => item.carcass.min[1] < 1], ['upper', (item) => item.carcass.min[1] >= 40]].map(([bank, inBank]) => {
+    const boxes = placed.filter((item) => inBank(item) && item.skuId !== 'RANGE1.30' && item.skuId !== 'DISH-IQ6' && item.skuId !== 'REF.2D.36');
+    const range = boxes.filter((item) => item.wallId === 'range').sort((p, q) => p.carcass.min[0] - q.carcass.min[0]);
+    const sink = boxes.filter((item) => item.wallId === 'sink').sort((p, q) => p.carcass.min[2] - q.carcass.min[2]);
+    if (!range.length || !sink.length) return { bank, gapIn: 0, gaps: [] };
+    const rangeDepth = Math.max(...range.map((item) => item.carcass.max[2]));
+    const sinkDepth = Math.max(...sink.map((item) => item.carcass.max[0]));
+    const firstRangeBox = range.find((item) => item.blind) || range[0];
+    const firstSinkBox = sink.find((item) => !/^F\d/.test(item.skuId)) || sink[0];
+    const alongRange = boxes.filter((item) => item.carcass.min[2] < rangeDepth - eps).map((item) => [item.carcass.min[0], item.carcass.max[0]]);
+    const alongSink = boxes.filter((item) => item.carcass.min[0] < sinkDepth - eps).map((item) => [item.carcass.min[2], item.carcass.max[2]]);
+    const gaps = [
+      ...uncovered(alongRange, 0, firstRangeBox.carcass.max[0]).map(([from, to]) => ({ wall: 'range', axis: 'x', from, to })),
+      ...uncovered(alongSink, 0, firstSinkBox.carcass.max[2]).map(([from, to]) => ({ wall: 'sink', axis: 'z', from, to })),
+    ];
+    return { bank, gapIn: round(gaps.reduce((sum, gap) => sum + (gap.to - gap.from), 0)), gaps };
+  });
+  return { url: page.url(), placed, stacked, sharedFloor, doors, corners };
 }
 
 async function connect(instance) {
