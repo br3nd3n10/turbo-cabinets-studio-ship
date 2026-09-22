@@ -154,6 +154,7 @@ async function loadSku(g, skuId) {
 async function assembleSku(g, design, rows, opts = {}) {
   await g.ready;
   hideShowroom(g);
+  if (g.skuRoot) g.skuRoot.visible = !opts.layout;
   if (opts.layout) return true;
   g.applyFinish('upper', design.upper.finish);
   g.applyFinish('lower', design.lower.finish);
@@ -162,6 +163,7 @@ async function assembleSku(g, design, rows, opts = {}) {
     g.skuRoot.name = 'sku-kitchen';
     g.scene.add(g.skuRoot);
   }
+  g.skuRoot.visible = true;
   clearGroup(g.skuRoot);
   const room = storedRoom();
   const extras = [];
@@ -198,6 +200,8 @@ async function assembleSku(g, design, rows, opts = {}) {
   const caption = document.querySelector('#mode-caption');
   if (opts.still && caption) caption.textContent = 'This kitchen';
   document.querySelector('.image-stage')?.classList.toggle('quality-mode', Boolean(opts.still));
+  g.resize?.();
+  g.renderer.render(g.scene, g.camera);
   g.invalidate();
   if (!placed.length) throw new Error('The kitchen could not load.');
   return true;
