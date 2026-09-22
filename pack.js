@@ -1,7 +1,16 @@
-export function runs(wall) {
+// The sink wall is taped from the inside corner. The range wall's corner box already
+// fills the first `depth` inches of that return, and the measured reference layout
+// puts a 3 in filler after it so the corner doors clear each other.
+const CORNER_FILLER = 3;
+
+function cornerStart(wall, depth) {
+  return wall.id === 'sink' ? depth + CORNER_FILLER : 0;
+}
+
+function runs(wall, depth) {
   const openings = [...(wall.openings || [])].sort((a, b) => a.start - b.start);
   const out = [];
-  let at = 0;
+  let at = cornerStart(wall, depth);
   for (const opening of openings) {
     if (opening.start > at) out.push({ start: at, end: opening.start });
     at = Math.max(at, opening.start + opening.width);
@@ -10,7 +19,7 @@ export function runs(wall) {
   return out;
 }
 
-export function fillRun(run, wall, skus, cutFace) {
+function fillRun(run, wall, skus, cutFace) {
   const rows = [];
   let at = run.start;
   while (at < run.end) {
@@ -27,5 +36,6 @@ export function fillRun(run, wall, skus, cutFace) {
 }
 
 export function packRoom(room, skus, cutFace = null) {
-  return (room?.walls || []).flatMap((wall) => runs(wall).flatMap((run) => fillRun(run, wall, skus, cutFace)));
+  const depth = Math.max(0, ...skus.map((sku) => sku.depth || 0));
+  return (room?.walls || []).flatMap((wall) => runs(wall, depth).flatMap((run) => fillRun(run, wall, skus, cutFace)));
 }
