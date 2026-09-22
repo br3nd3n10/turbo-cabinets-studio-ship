@@ -106,7 +106,7 @@ Proof standards:
 - For Save job, observe the downloaded `turbo-job-*.json` in the isolated Chrome download directory. Wall ids in that file stay `range` and `sink`. The file has `room` and `layout` and no prices.
 - For a finish or door-style change, `#scene-canvas` `data-upper-style` / `data-lower-style` and `data-*-finish` must match the controls. Swapping a template card must change `data-layout-skus`.
 - After a pick, Save view (`#download`) opens `#snapshot` with a PNG still of this assembled kitchen. `#live-stage` stays visible. `#image-stack` stays hidden. `#scene-canvas` `data-preview` is `sku`.
-- After a pick, `control-studio browser bounds` prints every placed mesh's world bounds in inches and exits non-zero when two meshes at the same height share floor or when a blind corner box's door swing holds another mesh. `stacked` counts uppers over bases, which is expected. One blind box owns the inside corner on the stove wall, pulled 3 in off the sink wall (`BBC39-L` at 3, `WBC2730-L` at 3). The sink return starts at 27 in for bases and 15 in for uppers, past that box's depth and a 3 in filler. `node pack.test.js` checks the same rules on the packer without a browser.
+- After a pick, `control-studio browser bounds` prints every placed mesh's world bounds in inches and exits non-zero when two meshes at the same height share floor, when a blind corner box's door swing holds another mesh, or when open floor shows at the inside corner (`cornerGap` must be 0). `stacked` counts uppers over bases, which is expected. One blind box owns the inside corner on the stove wall, pulled 3 in off the sink wall (`BBC39-L` at 3, `WBC2730-L` at 3), with a 3 in filler at 0 joining it to the sink wall. The sink return starts at 27 in for bases and 15 in for uppers, with a 3 in filler at 24 (uppers 12) joining it to the blind box's front. `node pack.test.js` checks the same rules on the packer without a browser.
 
 ## Cleanup
 
@@ -132,7 +132,7 @@ Never `pkill chrome` or `pkill python`. Kill the PIDs recorded in the run's inst
 | `browser press --key <name>` | Send a key |
 | `browser snapshot --aria --path <file>` | Page text |
 | `browser screenshot --path <file>` | PNG |
-| `browser bounds [--path <file>]` | World bounds of each placed SKU mesh in inches, fails when meshes share floor or a corner door cannot swing |
+| `browser bounds [--path <file>]` | World bounds of each placed SKU mesh in inches, fails when meshes share floor, a corner door cannot swing, or the inside corner shows open floor |
 | `stop` | Tear down this run only |
 
 ## Feature map
