@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
-import { packRoom } from './pack.js';
+import { candidates, packRoom, swapRow } from './pack.js';
+import { FILLER, INVENTORY, SKU, pick } from './inventory.js';
 
 const ROOM = {
   walls: [
@@ -154,5 +155,39 @@ assert.equal(dead.find((row) => row.wallId === 'sink').start, 27, 'without a bli
 
 const blocked = packRoom({ walls: [{ id: 'range', length: 40, openings: [{ kind: 'fridge', width: 36, start: 0 }] }, ROOM.walls[1]] }, BASES, { cutFace: CUT_FACE, filler: F3_BASE });
 assert.equal(blocked.filter((row) => row.skuId === 'BBC39-L').length, 0, 'an opening at the corner leaves no room for a blind box');
+
+// Lego swap. Click a placed box, see the current boxes that fit there, pick one, and the
+// rest of that run refits. The corner stays as packed.
+const LONGER_BASES = pick(['BBC39-L', 'SB36', 'BWB18', 'B15-L', 'B12-R']);
+const LONGER_UPPERS = pick(['WBC2730-L', 'W3630', 'W3015', 'W2730', 'W1230-L']);
+const layout = [
+  ...packRoom(ROOM, LONGER_BASES, { cutFace: CUT_FACE, filler: FILLER.base }),
+  ...packRoom(ROOM, LONGER_UPPERS, { filler: FILLER.upper }),
+];
+const ALL = [...INVENTORY];
+const ids = (skus) => skus.map((sku) => sku.id);
+
+assert.deepEqual(ids(candidates(ROOM, layout, { wallId: 'sink', start: 27 }, SKU)), ['SB36', 'BWB18', 'B15-L', 'B12-R', 'F3-base'], 'first sink base takes any regular base or a filler');
+assert.deepEqual(candidates(ROOM, layout, { wallId: 'range', start: 3 }, SKU), [], 'the blind corner box is not swappable');
+assert.deepEqual(candidates(ROOM, layout, { wallId: 'range', start: 0 }, SKU), [], 'the corner filler is not swappable');
+assert.deepEqual(ids(candidates(ROOM, layout, { wallId: 'range', start: 144 }, SKU)), ['BWB18', 'B15-L', 'B12-R', 'F3-base'], 'the last stove base only takes what fits before the wall ends');
+assert.deepEqual(ids(candidates(ROOM, layout, { wallId: 'sink', start: 15, bank: 'upper' }, SKU)), ['W3630', 'W3015', 'W2730', 'W1230-L', 'W1230-R', 'F3-upper'], 'W3615 would stand in the blind upper door swing');
+assert.deepEqual(ids(candidates(ROOM, layout, { wallId: 'sink', start: 51, bank: 'upper' }, SKU)), ['W3630', 'W3615', 'W3015', 'W2730', 'W1230-L', 'W1230-R', 'F3-upper'], 'past the swing the deep bridge upper is allowed');
+
+const swapped = swapRow(ROOM, layout, { wallId: 'sink', start: 27, bank: 'base' }, 'BWB18', LONGER_BASES, { cutFace: CUT_FACE, inventory: SKU });
+const swappedBases = swapped.filter((row) => row.cut || SKU.get(row.skuId).bank === 'base');
+assert.deepEqual(swappedBases.filter((row) => row.wallId === 'sink').map(label), ['sink/F3-base@24', 'sink/BWB18@27', 'sink/SB36@45', 'sink/SB36@81', 'sink/cut 11.25@117'], 'the swapped box leads and the rest of the sink run refits');
+assert.deepEqual(swappedBases.filter((row) => row.wallId === 'range').map(label), bases.map(label).filter((name) => name.startsWith('range/')), 'the stove wall is untouched');
+assert.deepEqual(swapped.filter((row) => !row.cut && SKU.get(row.skuId).bank === 'upper').map(label), uppers.map(label), 'uppers are untouched by a base swap');
+assert.deepEqual(collisions(swappedBases, ALL), [], 'swapped base footprints share floor');
+assert.deepEqual(cornerDoorBlockers(swappedBases, ALL), [], 'the swap blocked the corner door');
+assert.deepEqual(openFloor(swappedBases, ALL), [], 'the swap opened the corner');
+
+const upperSwap = swapRow(ROOM, layout, { wallId: 'range', start: 72, bank: 'upper' }, 'W1230-L', LONGER_UPPERS, { inventory: SKU });
+const swappedUppers = upperSwap.filter((row) => !row.cut && SKU.get(row.skuId).bank === 'upper');
+assert.deepEqual(swappedUppers.filter((row) => row.wallId === 'range').map(label), ['range/F3-upper@0', 'range/WBC2730-L@3', 'range/W1230-L@30', 'range/W1230-L@72', 'range/W3630@84', 'range/W3630@120', 'range/W1230-L@156'], 'the stove uppers refit after the swapped box');
+assert.deepEqual(openFloor(swappedUppers, ALL), [], 'the upper swap opened the corner');
+assert.deepEqual(swapRow(ROOM, layout, { wallId: 'sink', start: 15, bank: 'upper' }, 'W3615', LONGER_UPPERS, { inventory: SKU }), layout, 'a box that would stand in the door swing is refused');
+assert.deepEqual(swapRow(ROOM, layout, { wallId: 'range', start: 3 }, 'SB36', LONGER_BASES, { cutFace: CUT_FACE, inventory: SKU }), layout, 'the blind corner box is refused');
 
 console.log('pack.test.js ok');
