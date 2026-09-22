@@ -24,6 +24,8 @@ function setPhase(next) {
   if (welcome) welcome.hidden = next !== 'welcome';
   const templates = document.querySelector('#templates');
   if (templates) templates.hidden = next !== 'templates' && next !== 'ready';
+  const swap = document.querySelector('#swap');
+  if (swap && next !== 'ready') swap.hidden = true;
   const main = document.querySelector('main');
   if (main) main.inert = next === 'welcome';
 }

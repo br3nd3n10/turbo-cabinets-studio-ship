@@ -48,6 +48,13 @@
    <p class="showroom-lead">These runs use current cabinet sizes on the walls you just confirmed. Choose one, then keep swapping cabinets.</p>
    <div id="template-list" class="template-list"></div>
   </section>
+  <section id="swap" hidden aria-labelledby="swap-title">
+   <div class="eyebrow">Swap this cabinet</div>
+   <h2 id="swap-title"></h2>
+   <p class="showroom-lead" id="swap-note"></p>
+   <div id="swap-list" class="swap-list" role="group" aria-label="Cabinets that fit here"></div>
+   <button type="button" id="swap-close" class="quiet">Done</button>
+  </section>
   <div class="cabinet-controls">
   <div class="layout-field">
    <label for="layout" id="layout-label">Layout</label><select id="layout" aria-labelledby="layout-label"></select>

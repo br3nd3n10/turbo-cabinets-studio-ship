@@ -1,38 +1,19 @@
 import * as THREE from 'three';
-import { packRoom } from './pack.js';
+import { SKU } from './inventory.js';
 
 const IN = 0.0254;
 const STATE_KEY = 'turbo-cabinet-studio-v5';
 const SKU_DIR = new URL('/models/sku-v1/', globalThis.location?.origin || import.meta.url);
 
-const META = {
-  'BBC39-L': { kind: 'base', width: 39, height: 34.5, depth: 24, placementBottom: 0, styles: true, blind: true },
-  'SB36': { kind: 'base', width: 36, height: 34.5, depth: 24, placementBottom: 0, styles: true },
-  'BWB18': { kind: 'base', width: 18, height: 34.5, depth: 24, placementBottom: 0, styles: true },
-  'B15-L': { kind: 'base', width: 15, height: 34.5, depth: 24, placementBottom: 0, styles: true },
-  'B12-R': { kind: 'base', width: 12, height: 34.5, depth: 24, placementBottom: 0, styles: true },
-  'F3-base': { kind: 'filler', width: 3, height: 34.5, depth: 24, placementBottom: 0, styles: false },
-  'W3630': { kind: 'upper', width: 36, height: 36, depth: 12, placementBottom: 54, styles: true },
-  'W3615': { kind: 'upper', width: 36, height: 15, depth: 29.5, placementBottom: 75, styles: true },
-  'W3015': { kind: 'upper', width: 30, height: 15, depth: 12, placementBottom: 75, styles: true },
-  'W2730': { kind: 'upper', width: 27, height: 36, depth: 12, placementBottom: 54, styles: true },
-  'WBC2730-L': { kind: 'upper', width: 27, height: 36, depth: 12, placementBottom: 54, styles: true, blind: true },
-  'W1230-L': { kind: 'upper', width: 12, height: 36, depth: 12, placementBottom: 54, styles: true },
-  'W1230-R': { kind: 'upper', width: 12, height: 36, depth: 12, placementBottom: 54, styles: true },
-  'F3-upper': { kind: 'filler', width: 3, height: 36, depth: 12, placementBottom: 54, styles: false },
-  'RANGE1.30': { kind: 'appliance', width: 30, height: 44.6, depth: 27, placementBottom: 0, styles: false },
-  'DISH-IQ6': { kind: 'appliance', width: 24, height: 34.4, depth: 25, placementBottom: 0, styles: false },
-  'REF.2D.36': { kind: 'appliance', width: 36, height: 64.9, depth: 29.5, placementBottom: 0, styles: false },
-};
-
-const UPPER_RECIPES = {
-  longer: ['WBC2730-L', 'W3630', 'W3015', 'W2730', 'W1230-L'],
-  more: ['WBC2730-L', 'W1230-L', 'W1230-R', 'W2730', 'W3015'],
-  even: ['WBC2730-L', 'W2730', 'W1230-L', 'W3630', 'W3015'],
-  tight: ['WBC2730-L', 'W3630', 'W3015', 'W2730', 'F3-upper', 'W1230-L'],
-};
+const META = Object.fromEntries([...SKU.values()].map((sku) => [sku.id, {
+  ...sku,
+  placementBottom: sku.bottom || 0,
+  styles: sku.kind === 'base' || sku.kind === 'upper',
+}]));
 
 const OPENING_SKU = { range: 'RANGE1.30', dishwasher: 'DISH-IQ6', fridge: 'REF.2D.36' };
+
+let viewer = null;
 
 function storedRoom() {
   try {
@@ -40,20 +21,6 @@ function storedRoom() {
   } catch {
     return null;
   }
-}
-
-function recipeId() {
-  try {
-    return JSON.parse(sessionStorage.getItem('turbo-studio-template') || 'null')?.id || 'longer';
-  } catch {
-    return 'longer';
-  }
-}
-
-function packUppers(room) {
-  const ids = UPPER_RECIPES[recipeId()] || UPPER_RECIPES.longer;
-  const skus = ids.map((id) => META[id]).filter(Boolean).map((meta, i) => ({ id: ids[i], ...meta }));
-  return packRoom(room, skus, { filler: { id: 'F3-upper', ...META['F3-upper'] } });
 }
 
 function openingRows(room) {
@@ -100,6 +67,72 @@ function place(node, row, meta) {
   } else {
     node.position.set(row.start * IN, bottom * IN, meta.depth * IN);
   }
+  node.userData.skuId = row.skuId;
+  node.userData.wallId = row.wallId;
+  node.userData.start = row.start;
+  node.userData.bank = meta.bank;
+}
+
+// Lego swap. A click on the canvas that did not orbit picks the placed box under the
+// pointer and hands it to the layout owner. The picked box wears an outline until the
+// selection clears.
+function target(node) {
+  const { skuId, wallId, start, bank } = node.userData;
+  return { skuId, wallId, start, bank };
+}
+
+function pickAt(g, event) {
+  const rect = g.renderer.domElement.getBoundingClientRect();
+  const point = new THREE.Vector2(((event.clientX - rect.left) / rect.width) * 2 - 1, -((event.clientY - rect.top) / rect.height) * 2 + 1);
+  const ray = new THREE.Raycaster();
+  ray.setFromCamera(point, g.camera);
+  for (const hit of ray.intersectObjects(g.skuRoot?.children || [], true)) {
+    let node = hit.object;
+    while (node && node.parent !== g.skuRoot) node = node.parent;
+    if (node?.userData.skuId) return target(node);
+  }
+  return null;
+}
+
+function bindPicking(g) {
+  if (g.pickingBound) return;
+  g.pickingBound = true;
+  const canvas = g.renderer.domElement;
+  let down = null;
+  canvas.addEventListener('pointerdown', (event) => {
+    down = event.button === 0 ? { x: event.clientX, y: event.clientY } : null;
+  });
+  canvas.addEventListener('pointerup', (event) => {
+    if (!down) return;
+    const moved = Math.hypot(event.clientX - down.x, event.clientY - down.y);
+    down = null;
+    if (moved > 4) return;
+    globalThis.STUDIO_SELECT?.(pickAt(g, event));
+  });
+}
+
+function highlight(selection) {
+  const g = viewer;
+  if (!g) return;
+  if (g.swapOutline) {
+    g.scene.remove(g.swapOutline);
+    g.swapOutline.dispose?.();
+    g.swapOutline = null;
+  }
+  const canvas = g.renderer.domElement;
+  const node = selection && g.skuRoot?.children.find((child) => child.userData.wallId === selection.wallId
+    && Math.abs(child.userData.start - selection.start) < 1e-6
+    && (!selection.bank || child.userData.bank === selection.bank));
+  if (!node) {
+    delete canvas.dataset.selected;
+    g.invalidate();
+    return;
+  }
+  const box = new THREE.Box3().setFromObject(node, true).expandByScalar(0.006);
+  g.swapOutline = new THREE.Box3Helper(box, new THREE.Color('#c89d51'));
+  g.scene.add(g.swapOutline);
+  canvas.dataset.selected = `${node.userData.wallId}:${node.userData.start}:${node.userData.skuId}`;
+  g.invalidate();
 }
 
 function clearGroup(group) {
@@ -142,12 +175,11 @@ async function assembleSku(g, design, rows, opts = {}) {
   }
   g.skuRoot.visible = true;
   clearGroup(g.skuRoot);
+  viewer = g;
+  bindPicking(g);
   const room = storedRoom();
-  const extras = [];
-  if (!rows.some((row) => META[row.skuId]?.kind === 'upper')) extras.push(...packUppers(room));
-  extras.push(...openingRows(room));
   const placed = [];
-  for (const row of [...rows, ...extras]) {
+  for (const row of [...rows, ...openingRows(room)]) {
     if (row.cut || !row.skuId) continue;
     const meta = META[row.skuId];
     if (!meta) continue;
@@ -159,8 +191,6 @@ async function assembleSku(g, design, rows, opts = {}) {
     const node = source.clone(true);
     bindMaterials(node, g.banks[bankName]);
     place(node, row, meta);
-    node.userData.skuId = row.skuId;
-    node.userData.wallId = row.wallId;
     node.userData.style = style;
     g.skuRoot.add(node);
     placed.push(`${row.skuId}:${style}`);
@@ -177,6 +207,8 @@ async function assembleSku(g, design, rows, opts = {}) {
   const caption = document.querySelector('#mode-caption');
   if (opts.still && caption) caption.textContent = 'This kitchen';
   document.querySelector('.image-stage')?.classList.toggle('quality-mode', Boolean(opts.still));
+  const selection = canvas.dataset.selected?.split(':');
+  highlight(selection ? { wallId: selection[0], start: Number(selection[1]), skuId: selection[2], bank: META[selection[2]]?.bank } : null);
   g.resize?.();
   g.renderer.render(g.scene, g.camera);
   g.invalidate();
@@ -185,3 +217,4 @@ async function assembleSku(g, design, rows, opts = {}) {
 }
 
 globalThis.STUDIO_ASSEMBLE_SKU = assembleSku;
+globalThis.STUDIO_HIGHLIGHT = highlight;

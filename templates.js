@@ -1,25 +1,22 @@
-import { packRoom } from './pack.js';
+import { candidates, findRow, packRoom, swapRow } from './pack.js';
+import { FILLER, SKU, pick } from './inventory.js';
 
 const TEMPLATE_KEY = 'turbo-studio-template';
 const STATE_KEY = 'turbo-cabinet-studio-v5';
 const WALL_NAME = { range: 'Stove wall', sink: 'Sink wall' };
 const CUT_FACE = { height: 34.5, depth: 24 };
 
-const BASE = [
-  { id: 'BBC39-L', kind: 'base', width: 39, height: 34.5, depth: 24, blind: true },
-  { id: 'SB36', kind: 'base', width: 36, height: 34.5, depth: 24 },
-  { id: 'BWB18', kind: 'base', width: 18, height: 34.5, depth: 24 },
-  { id: 'B15-L', kind: 'base', width: 15, height: 34.5, depth: 24 },
-  { id: 'B12-R', kind: 'base', width: 12, height: 34.5, depth: 24 },
-];
-const FILLER = { id: 'F3-base', kind: 'filler', width: 3, height: 34.5, depth: 24 };
+const BASE = pick(['BBC39-L', 'SB36', 'BWB18', 'B15-L', 'B12-R']);
+const UPPER = pick(['WBC2730-L', 'W3630', 'W3015', 'W2730', 'W1230-L']);
 
 const RECIPES = [
-  { id: 'longer', name: 'Longer boxes', blurb: 'Largest current boxes first.', skus: sortByWidth(BASE, -1) },
-  { id: 'more', name: 'More cabinets', blurb: 'Smaller current boxes, more doors.', skus: sortByWidth(BASE, 1) },
-  { id: 'even', name: 'Even run', blurb: 'Mid-size boxes past the corner.', skus: [BASE[0], BASE[2], BASE[3], BASE[1], BASE[4]] },
-  { id: 'tight', name: 'Tight fillers', blurb: 'Largest boxes, then 3-inch fillers.', skus: [...sortByWidth(BASE, -1), FILLER] },
+  { id: 'longer', name: 'Longer boxes', blurb: 'Largest current boxes first.', skus: sortByWidth(BASE, -1), uppers: UPPER },
+  { id: 'more', name: 'More cabinets', blurb: 'Smaller current boxes, more doors.', skus: sortByWidth(BASE, 1), uppers: pick(['WBC2730-L', 'W1230-L', 'W1230-R', 'W2730', 'W3015']) },
+  { id: 'even', name: 'Even run', blurb: 'Mid-size boxes past the corner.', skus: pick(['BBC39-L', 'BWB18', 'B15-L', 'SB36', 'B12-R']), uppers: pick(['WBC2730-L', 'W2730', 'W1230-L', 'W3630', 'W3015']) },
+  { id: 'tight', name: 'Tight fillers', blurb: 'Largest boxes, then 3-inch fillers.', skus: [...sortByWidth(BASE, -1), FILLER.base], uppers: pick(['WBC2730-L', 'W3630', 'W3015', 'W2730', 'F3-upper', 'W1230-L']) },
 ];
+
+let selected = null;
 
 function sortByWidth(skus, dir) {
   return [...skus].sort((a, b) => (a.width - b.width) * dir);
@@ -35,20 +32,35 @@ function storedRoom() {
 
 function loadPick() {
   try {
-    const pick = JSON.parse(sessionStorage.getItem(TEMPLATE_KEY) || 'null');
-    return pick?.rows?.length ? pick : null;
+    const stored = JSON.parse(sessionStorage.getItem(TEMPLATE_KEY) || 'null');
+    return stored?.rows?.length ? stored : null;
   } catch {
     return null;
   }
 }
 
-function savePick(pick) {
-  sessionStorage.setItem(TEMPLATE_KEY, JSON.stringify(pick));
+function savePick(stored) {
+  sessionStorage.setItem(TEMPLATE_KEY, JSON.stringify(stored));
 }
 
 function clearPick() {
   sessionStorage.removeItem(TEMPLATE_KEY);
   globalThis.STUDIO_LAYOUT_OVERRIDE = null;
+}
+
+function recipeOf(id) {
+  return RECIPES.find((recipe) => recipe.id === id) || RECIPES[0];
+}
+
+function packRecipe(room, recipe) {
+  return [
+    ...packRoom(room, recipe.skus, { cutFace: CUT_FACE, filler: FILLER.base }),
+    ...packRoom(room, recipe.uppers, { filler: FILLER.upper }),
+  ];
+}
+
+function bankOf(row) {
+  return row.cut ? 'base' : SKU.get(row.skuId)?.bank || 'base';
 }
 
 function signature(rows) {
@@ -61,7 +73,7 @@ function labelRow(row) {
 
 function wallLine(room, rows, wallId) {
   const wall = room.walls.find((item) => item.id === wallId);
-  const placed = rows.filter((row) => row.wallId === wallId);
+  const placed = rows.filter((row) => row.wallId === wallId && bankOf(row) === 'base');
   const name = WALL_NAME[wallId] || wallId;
   if (!wall) return '';
   return `${name} ${wall.length} in · ${placed.map(labelRow).join(' · ') || 'open'}`;
@@ -71,7 +83,7 @@ function recipesFor(room) {
   const seen = new Set();
   const out = [];
   for (const recipe of RECIPES) {
-    const rows = packRoom(room, recipe.skus, { cutFace: CUT_FACE, filler: FILLER });
+    const rows = packRecipe(room, recipe);
     if (!rows.length) continue;
     const key = signature(rows);
     if (seen.has(key)) continue;
@@ -81,16 +93,17 @@ function recipesFor(room) {
   return out;
 }
 
-function applyLayoutView() {
+function applyRows(id, rows) {
+  savePick({ id, rows });
+  globalThis.STUDIO_LAYOUT_OVERRIDE = { rows };
   if (typeof globalThis.STUDIO_REFRESH === 'function') globalThis.STUDIO_REFRESH();
 }
 
-function chooseTemplate(recipe, { refresh = true } = {}) {
-  savePick({ id: recipe.id, rows: recipe.rows });
-  globalThis.STUDIO_LAYOUT_OVERRIDE = { rows: recipe.rows };
+function chooseTemplate(recipe) {
+  select(null);
   markPressed(recipe.id);
   globalThis.STUDIO_SET_PHASE?.('ready');
-  if (refresh) applyLayoutView();
+  applyRows(recipe.id, recipe.rows);
 }
 
 function markPressed(id) {
@@ -102,13 +115,13 @@ function markPressed(id) {
 function renderTemplates(room) {
   const list = document.querySelector('#template-list');
   if (!list || !room?.walls?.length) return;
-  const pick = loadPick();
+  const stored = loadPick();
   list.replaceChildren(...recipesFor(room).map((recipe) => {
     const button = document.createElement('button');
     button.type = 'button';
     button.className = 'template-card';
     button.dataset.template = recipe.id;
-    button.setAttribute('aria-pressed', String(pick?.id === recipe.id));
+    button.setAttribute('aria-pressed', String(stored?.id === recipe.id));
     const title = document.createElement('strong');
     title.textContent = recipe.name;
     const blurb = document.createElement('p');
@@ -123,6 +136,64 @@ function renderTemplates(room) {
   }));
 }
 
+// Lego swap. A click on a placed box selects it. The panel lists the current boxes that
+// fit there; choosing one replaces it and refits the rest of that run.
+function describe(row) {
+  const sku = SKU.get(row.skuId);
+  const bank = sku?.bank === 'upper' ? 'upper' : 'base';
+  return `${row.skuId} · ${WALL_NAME[row.wallId] || row.wallId} ${bank} at ${row.start} in`;
+}
+
+function renderSwap() {
+  const panel = document.querySelector('#swap');
+  const list = document.querySelector('#swap-list');
+  const title = document.querySelector('#swap-title');
+  const note = document.querySelector('#swap-note');
+  if (!panel || !list) return;
+  const room = storedRoom();
+  const stored = loadPick();
+  const row = selected && stored && room ? findRow(stored.rows, selected, SKU) : null;
+  if (!row) {
+    panel.hidden = true;
+    list.replaceChildren();
+    globalThis.STUDIO_HIGHLIGHT?.(null);
+    return;
+  }
+  const options = candidates(room, stored.rows, selected, SKU);
+  title.textContent = describe(row);
+  note.textContent = options.length
+    ? 'Pick another current cabinet for this spot. The rest of that run refits.'
+    : 'This piece stays. The blind corner, its fillers, and the openings shape the room.';
+  list.replaceChildren(...options.map((sku) => {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.dataset.swap = sku.id;
+    button.setAttribute('aria-pressed', String(sku.id === row.skuId));
+    button.textContent = `${sku.id} · ${sku.width} in`;
+    button.addEventListener('click', () => swap(sku.id));
+    return button;
+  }));
+  panel.hidden = false;
+  globalThis.STUDIO_HIGHLIGHT?.({ ...selected, skuId: row.skuId });
+}
+
+function select(target) {
+  selected = target ? { wallId: target.wallId, start: target.start, bank: target.bank || SKU.get(target.skuId)?.bank || 'base' } : null;
+  renderSwap();
+}
+
+function swap(skuId) {
+  const room = storedRoom();
+  const stored = loadPick();
+  if (!room || !stored || !selected) return;
+  const recipe = recipeOf(stored.id);
+  const skus = selected.bank === 'upper' ? recipe.uppers : recipe.skus;
+  const rows = swapRow(room, stored.rows, selected, skuId, skus, { cutFace: selected.bank === 'upper' ? null : CUT_FACE, inventory: SKU });
+  if (rows === stored.rows) return;
+  applyRows(stored.id, rows);
+  renderSwap();
+}
+
 function persistRoom(room) {
   try {
     const state = JSON.parse(localStorage.getItem(STATE_KEY) || '{}') || {};
@@ -134,21 +205,33 @@ function persistRoom(room) {
 }
 
 function onRoomConfirmed(room) {
+  select(null);
   clearPick();
   persistRoom(room);
   renderTemplates(room);
   globalThis.STUDIO_SET_PHASE?.('templates');
 }
 
+// Picks saved before uppers joined the layout carry bases only. Pack the uppers once so
+// the assembled kitchen and Save job see the whole layout.
+function migrate(stored, room) {
+  if (!stored || !room || stored.rows.some((row) => bankOf(row) === 'upper')) return stored;
+  const rows = [...stored.rows, ...packRoom(room, recipeOf(stored.id).uppers, { filler: FILLER.upper })];
+  savePick({ id: stored.id, rows });
+  return { id: stored.id, rows };
+}
+
 function bootTemplates() {
   globalThis.STUDIO_ON_ROOM_CONFIRMED = onRoomConfirmed;
   globalThis.STUDIO_HAS_TEMPLATE = () => Boolean(loadPick() || globalThis.STUDIO_LAYOUT_OVERRIDE?.rows);
-  const pick = loadPick();
-  if (pick) globalThis.STUDIO_LAYOUT_OVERRIDE = { rows: pick.rows };
+  globalThis.STUDIO_SELECT = select;
   const room = storedRoom();
+  const stored = migrate(loadPick(), room);
+  if (stored) globalThis.STUDIO_LAYOUT_OVERRIDE = { rows: stored.rows };
   if (room) renderTemplates(room);
-  if (room && pick) globalThis.STUDIO_SET_PHASE?.('ready');
+  if (room && stored) globalThis.STUDIO_SET_PHASE?.('ready');
   else if (room) globalThis.STUDIO_SET_PHASE?.('templates');
+  document.querySelector('#swap-close')?.addEventListener('click', () => select(null));
 }
 
 bootTemplates();
