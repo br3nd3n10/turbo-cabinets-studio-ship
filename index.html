@@ -11,13 +11,29 @@
 <script type="importmap">{"imports":{"three":"https://unpkg.com/three@0.185.1/build/three.module.js","three/addons/":"https://unpkg.com/three@0.185.1/examples/jsm/"}}</script>
 <script src="catalog.js"></script>
 <script type="module" src="studio.js"></script>
+<script type="module" src="showroom.js"></script>
+<script type="module" src="templates.js"></script>
+<script type="module" src="kitchen.js"></script>
 </head>
-<body>
+<body data-phase="welcome">
+<section id="welcome" class="welcome" aria-labelledby="welcome-title">
+ <div class="welcome-inner">
+  <p class="eyebrow">Turbo Cabinets</p>
+  <h1 id="welcome-title">Tape both walls first. We'll show kitchens that fit.</h1>
+  <p class="welcome-lead">Turbo models your kitchen from the stove wall, the sink wall, and the openings you tape. Confirm those lengths, then pick a layout that solves that room from current cabinets. After that you can keep swapping cabinets, doors, and color.</p>
+  <ol class="welcome-steps">
+   <li>Tape the stove wall, the sink wall, and every opening.</li>
+   <li>Confirm those lengths.</li>
+   <li>Pick one of the kitchens that fit that room.</li>
+   <li>Keep swapping cabinets, doors, and color. Save the job when you are ready.</li>
+  </ol>
+  <button type="button" class="showroom-next" id="welcome-enter">Tape my kitchen</button>
+ </div>
+</section>
 <main>
  <section class="canvas" aria-label="Kitchen preview">
-  <div class="modebar" role="group" aria-label="Preview mode"><button data-mode="interactive" aria-pressed="true">Interactive 3D</button><button data-mode="image" aria-pressed="false">High-quality images</button><button data-mode="layout" aria-pressed="false">Layout</button><button type="button" id="measure-open">Measure</button><button type="button" id="job-download" disabled>Save job ↓</button></div>
-  <div class="viewbar"><div class="segmented" role="group" aria-label="Camera view"><button data-view="kitchen" aria-pressed="true">Kitchen</button><button data-view="detail" aria-pressed="false">Close-up</button></div><button id="download" class="quiet" disabled>Save view ↓</button></div>
-  <div class="image-stage" aria-busy="true"><div id="live-stage"></div><div id="image-stack" role="img" aria-label="Kitchen image" hidden></div><div id="layout-legend" hidden></div><div class="loading" id="loading" role="status">Loading your kitchen…</div><div id="load-error" hidden><p id="error-message"></p><button id="retry">Try again</button></div>
+  <div class="viewbar"><div class="segmented" role="group" aria-label="Camera view"><button data-view="kitchen" aria-pressed="true">Kitchen</button><button data-view="detail" aria-pressed="false">Close-up</button></div><div class="viewbar-actions"><button type="button" id="measure-open" class="quiet">Room sizes</button><button id="download" class="quiet" disabled>Save view ↓</button><button type="button" id="job-download" disabled>Save job ↓</button></div></div>
+  <div class="image-stage" aria-busy="true"><div id="live-stage"></div><div id="room-preview" hidden></div><div id="image-stack" role="img" aria-label="Kitchen image" hidden></div><div id="layout-legend" hidden></div><div id="wall-labels" hidden></div><div class="loading" id="loading" role="status">Loading your kitchen…</div><div id="load-error" hidden><p id="error-message"></p><button id="retry">Try again</button></div>
    <div class="orbit-tools" role="group" aria-label="3D navigation"><button id="zoom-in" aria-label="Zoom in">+</button><button id="zoom-out" aria-label="Zoom out">−</button><button id="reset" aria-label="Reset view">↺</button></div>
 
   </div>
@@ -25,7 +41,22 @@
   <div class="image-caption"><span id="image-title" aria-live="polite"></span><span id="mode-caption">Interactive 3D</span></div>
  </section>
  <aside class="options" aria-label="Kitchen design options">
-  <div class="options-intro"><div class="eyebrow">Make it yours</div><h1>Find your combination.</h1></div>
+  <div class="options-intro"><div class="eyebrow">Kitchen</div><h1>Doors and color stay yours.</h1><p class="showroom-lead">Tape the room first. After you confirm, pick a layout that fits. Then keep swapping cabinets, doors, and color.</p></div>
+  <section id="templates" hidden>
+   <div class="eyebrow">Layouts that fit</div>
+   <h2 id="templates-title">Pick a kitchen that solves your room.</h2>
+   <p class="showroom-lead">These runs use current cabinet sizes on the walls you just confirmed. Choose one, then keep swapping cabinets.</p>
+   <div id="template-list" class="template-list"></div>
+  </section>
+  <section id="swap" hidden aria-labelledby="swap-title">
+   <div class="eyebrow">Swap this cabinet</div>
+   <h2 id="swap-title"></h2>
+   <p class="showroom-lead" id="swap-note"></p>
+   <div id="swap-current"></div>
+   <div id="swap-list" class="swap-list" role="group" aria-label="Cabinets that fit here"></div>
+   <button type="button" id="open-door" hidden>Open door</button>
+   <button type="button" id="swap-close" class="quiet">Done</button>
+  </section>
   <div class="cabinet-controls">
   <div class="layout-field">
    <label for="layout" id="layout-label">Layout</label><select id="layout" aria-labelledby="layout-label"></select>
@@ -38,6 +69,11 @@
    <label for="style" id="style-label">Upper door style</label><select id="style" aria-labelledby="style-label"></select>
    <div class="finish-heading"><span id="finish-label">Upper finish</span><span id="finish-name"></span></div>
    <div id="finishes" class="swatches" role="group" aria-labelledby="finish-label"></div>
+   <div class="finish-scope" role="group" aria-label="Where this finish goes">
+    <button type="button" id="finish-one" aria-pressed="false">This cabinet</button>
+    <button type="button" id="finish-all" aria-pressed="true">Every cabinet</button>
+   </div>
+   <p id="finish-scope-note" class="note"></p>
    <div class="selection-footer"><span id="hardware-name"></span><button class="quiet" id="match-both">Use on both</button></div>
   </div>
   </div>
@@ -52,13 +88,19 @@
 </main>
 <dialog id="snapshot" aria-labelledby="snapshot-title"><div class="dialog-top"><h2 id="snapshot-title">Your kitchen.</h2><button id="snapshot-close" class="quiet" aria-label="Close saved view">Close ×</button></div><img id="snapshot-image" alt=""><a id="snapshot-download" class="snapshot-link" download>Download PNG ↓</a></dialog>
 <dialog id="measure" aria-labelledby="measure-title">
- <div class="dialog-top"><h2 id="measure-title">Tape the L.</h2><button id="measure-close" class="quiet" aria-label="Close measure">Close ×</button></div>
+ <div class="dialog-top"><h2 id="measure-title">Your two walls.</h2><button id="measure-close" class="quiet" aria-label="Close room sizes">Close ×</button></div>
+ <p class="measure-lead" id="measure-lead">The wall with the stove, then the wall with the sink. Add each opening you taped. Inches are fine.</p>
  <form id="measure-form">
+  <div class="shape-pick">
+   <p class="shape-label" id="shape-label">Room shape</p>
+   <div class="shape-row" id="shape-row" role="radiogroup" aria-labelledby="shape-label"></div>
+   <p id="shape-note" class="note" hidden></p>
+  </div>
   <div class="wall-fields">
-   <label for="range-length">Range wall (inches)</label>
-   <input id="range-length" name="range-length" inputmode="decimal" autocomplete="off" placeholder="169.5" aria-describedby="measure-error">
+   <label for="range-length">Stove wall (inches)</label>
+   <input id="range-length" name="range-length" inputmode="decimal" autocomplete="off" aria-describedby="measure-error">
    <label for="sink-length">Sink wall (inches)</label>
-   <input id="sink-length" name="sink-length" inputmode="decimal" autocomplete="off" placeholder="128.25">
+   <input id="sink-length" name="sink-length" inputmode="decimal" autocomplete="off">
   </div>
   <div class="opening-head"><span>Openings</span><button type="button" id="add-opening" class="quiet">Add opening</button></div>
   <div id="opening-list"></div>
@@ -66,11 +108,12 @@
    <label for="measure-photos">Photos <span class="optional">optional</span></label>
    <input id="measure-photos" type="file" accept="image/*" multiple>
   </div>
-  <p class="note">Tape numbers own the order.</p>
+  <p class="note">Turbo will only show kitchens that fit these confirmed lengths.</p>
   <p id="measure-error" class="measure-error" role="alert" hidden></p>
   <button type="submit" id="measure-continue">Continue</button>
  </form>
  <div id="measure-confirm" hidden>
+  <div id="confirm-shape" class="confirm-shape"></div>
   <p class="tape-echo" id="confirm-length"></p>
   <ul id="confirm-openings"></ul>
   <p id="confirm-photos" class="note"></p>

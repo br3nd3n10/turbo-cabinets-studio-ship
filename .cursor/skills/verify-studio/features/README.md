@@ -5,6 +5,7 @@ This directory is the maintained source for verifying V1 user-facing behavior. R
 ## Baseline preconditions
 
 - Drive `https://turbo-cabinets-studio-v1.vercel.app/` unless the recipe says `--local`.
+- Live V1 is measurement-first. Welcome, then the two walls and openings, then a layout that fits, then an assembled sku-v1 kitchen, then Save job.
 - Run `.cursor/skills/verify-studio/scripts/control-studio doctor` and require `v1=true`.
 - Use the isolated Chrome profile from `control-studio launch`. Do not attach to a human browser.
 - Never drive `https://turbo-cabinets-studio.vercel.app/` or `https://turbocabinets.net/studio`. Those are the older production embed.
@@ -12,7 +13,7 @@ This directory is the maintained source for verifying V1 user-facing behavior. R
 
 ## Driving conventions
 
-- Prefer `#id`, `[data-mode]`, `[data-bank]`, `[data-view]`, and accessible names.
+- Prefer `#id`, `[data-bank]`, `[data-view]`, and accessible names.
 - Treat every command as literal.
 - Run browser actions through `control-studio browser`.
 - Keep proof files under `.cursor/skills/verify-studio/artifacts/`.
@@ -36,8 +37,10 @@ Each feature file starts with an H1 title and one paragraph. It then uses exactl
 
 ## Features
 
-- [Measure the L](./measure-l.md) covers opening Measure, entering wall tape, confirming, and landing in Layout.
-- [Choose cabinets](./choose-cabinets.md) covers upper and lower style and finish, plus Use on both.
-- [Preview modes](./preview-modes.md) covers Interactive 3D, High-quality images, Layout, Kitchen, and Close-up.
-- [Save a job](./save-job.md) covers downloading the job JSON after a confirmed tape.
+- [Measure first](./measure-first.md) covers the welcome, taping both walls, hiding layout cards until Confirm, and picking a solved kitchen.
+- [Measure the L](./measure-l.md) covers opening Your two walls from the welcome, entering wall lengths, confirming, and landing on the template cards.
+- [Choose cabinets](./choose-cabinets.md) covers upper and lower style and finish, plus Use on both, after a layout is picked.
+- [Preview](./preview-modes.md) covers Kitchen, Close-up, orbit, and Save view. There is no preview mode row.
+- [Swap a cabinet](./swap-cabinet.md) covers clicking a placed box, the boxes that fit there, and the refit of that run.
+- [Save a job](./save-job.md) covers downloading Room + Layout after a picked template.
 - [Choose surfaces](./choose-surfaces.md) covers countertop and flooring swatches.

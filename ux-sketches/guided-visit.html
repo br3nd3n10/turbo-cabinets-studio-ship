@@ -9,11 +9,14 @@
 :root{--paper:#fff;--ink:#29372e;--muted:#747a70;--line:#d9ddd2}
 *{box-sizing:border-box}body{margin:0;font-family:'League Spartan',sans-serif;color:var(--ink);background:var(--paper)}
 header{display:flex;justify-content:space-between;align-items:center;padding:18px 28px;border-bottom:1px solid var(--line);font-size:12px;letter-spacing:.14em;text-transform:uppercase}
+header a{color:var(--muted);text-decoration:none}
 main{max-width:720px;margin:0 auto;padding:36px 24px 64px}
 .steps{display:flex;gap:18px;font-size:12px;color:var(--muted);margin-bottom:28px}
 .steps span[aria-current=step]{color:var(--ink);font-weight:600}
-h1{font-weight:400;font-size:40px;letter-spacing:-.045em;line-height:1.05;margin:0 0 12px}
-.lead{color:var(--muted);line-height:1.5;margin:0 0 28px}
+h1{font-weight:400;font-size:40px;letter-spacing:-.02em;line-height:1.1;margin:0 0 12px}
+.lead{color:var(--muted);line-height:1.55;margin:0 0 20px}
+.plan{margin:0 0 28px;padding-left:20px;line-height:1.5}
+.plan li{margin:0 0 8px}
 .l{display:grid;grid-template-columns:1fr 160px;grid-template-rows:160px 1fr;height:280px;margin:0 0 28px}
 .range,.sink{border:2px solid var(--ink);border-radius:6px;padding:14px;display:flex;flex-direction:column;justify-content:space-between}
 .range{grid-column:1;grid-row:1}
@@ -27,17 +30,29 @@ button.look[aria-pressed=true],button.swatch[aria-pressed=true]{border-color:var
 .next{margin-top:28px;width:100%;min-height:48px;border:0;background:var(--ink);color:#fff;border-radius:4px;font:inherit;cursor:pointer}
 .quiet{background:none;border:0;color:var(--muted);padding:12px 0;font:inherit;cursor:pointer}
 .hidden{display:none}
-.summary{font-size:28px;letter-spacing:-.03em;margin:8px 0 20px}
+.summary{font-size:28px;letter-spacing:-.02em;margin:8px 0 20px}
 </style>
 </head>
 <body>
-<header><span>Turbo Cabinets</span><span>Kitchen visit</span></header>
+<header><a href="index.html">All four ways</a><span>Kitchen visit</span></header>
 <main>
- <div class="steps" aria-label="Progress"><span id="s1" aria-current="step">1. Your walls</span><span id="s2">2. The look</span><span id="s3">3. Send to Turbo</span></div>
+ <section id="step-intro">
+  <h1>We’ll size your room, then pick a look.</h1>
+  <p class="lead">Turbo models the kitchen from what you enter here. Cabinets have to fit two walls. The doors and color are how you want it to look. Nothing is cut until you send it.</p>
+  <ol class="plan">
+   <li>Tell us how long the stove wall and the sink wall are.</li>
+   <li>Pick a door style and a color.</li>
+   <li>Send that to the shop. They use it to model your kitchen.</li>
+  </ol>
+  <p class="lead">This page is a click-through. The 3D kitchen is not here yet.</p>
+  <button class="next" id="to-walls" type="button">Start with my walls</button>
+ </section>
 
- <section id="step-walls">
+ <div class="steps hidden" id="progress" aria-label="Progress"><span id="s1" aria-current="step">1. Your walls</span><span id="s2">2. The look</span><span id="s3">3. Send to Turbo</span></div>
+
+ <section id="step-walls" class="hidden">
   <h1>How long are the two walls?</h1>
-  <p class="lead">Stand in the corner where the cabinets meet. One wall has the stove. The other has the sink. Type the tape numbers in inches.</p>
+  <p class="lead">Stand in the corner where the cabinets meet. One wall has the stove. The other has the sink. Type the tape numbers in inches. Those numbers are the room Turbo will model.</p>
   <div class="l" aria-hidden="false">
    <div class="range">
     <label for="range">Wall with the stove</label>
@@ -49,12 +64,13 @@ button.look[aria-pressed=true],button.swatch[aria-pressed=true]{border-color:var
     <input id="sink" inputmode="decimal" value="128.25">
    </div>
   </div>
+  <button class="quiet" type="button" id="back-intro">Back</button>
   <button class="next" id="to-look" type="button">These numbers look right</button>
  </section>
 
  <section id="step-look" class="hidden">
   <h1>Which doors do you like?</h1>
-  <p class="lead">This only changes how the kitchen looks. You can change it later.</p>
+  <p class="lead">This is the look Turbo will put on the model. You can change it later.</p>
   <div class="looks">
    <button class="look" type="button" aria-pressed="true" data-style="Shaker"><span class="chip" style="background:#e5e3dc"></span>Shaker<br><small>Painted, classic frame</small></button>
    <button class="look" type="button" aria-pressed="false" data-style="Slim Shaker"><span class="chip" style="background:#4b5745"></span>Slim Shaker<br><small>Narrow frame, often green</small></button>
@@ -71,23 +87,29 @@ button.look[aria-pressed=true],button.swatch[aria-pressed=true]{border-color:var
 
  <section id="step-send" class="hidden">
   <h1>Send this kitchen to Turbo.</h1>
-  <p class="lead">We will call you to place the doors. There are no prices in this file.</p>
+  <p class="lead">This is the job they will model. There are no prices in this file.</p>
   <p class="summary" id="echo"></p>
   <button class="quiet" type="button" id="back-look">Change the look</button>
   <button class="next" id="send" type="button">Send to the shop</button>
-  <p class="lead" id="sent" hidden>Saved as a job file. Turbo can open this on their end.</p>
+  <p class="lead" id="sent" hidden>Saved as a job file. Turbo can open this on their end and model the kitchen from those two walls and this look.</p>
  </section>
 </main>
 <script>
+const intro=document.querySelector('#step-intro');
 const walls=document.querySelector('#step-walls');
 const look=document.querySelector('#step-look');
 const send=document.querySelector('#step-send');
+const progress=document.querySelector('#progress');
 const setStep=(n)=>{
+  intro.classList.toggle('hidden',n!==0);
   walls.classList.toggle('hidden',n!==1);
   look.classList.toggle('hidden',n!==2);
   send.classList.toggle('hidden',n!==3);
+  progress.classList.toggle('hidden',n===0);
   ['s1','s2','s3'].forEach((id,i)=>document.getElementById(id).toggleAttribute('aria-current',i+1===n));
 };
+document.querySelector('#to-walls').onclick=()=>setStep(1);
+document.querySelector('#back-intro').onclick=()=>setStep(0);
 document.querySelector('#to-look').onclick=()=>setStep(2);
 document.querySelector('#back-walls').onclick=()=>setStep(1);
 document.querySelector('#to-send').onclick=()=>{

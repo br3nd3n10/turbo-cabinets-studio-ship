@@ -21,7 +21,8 @@ Choose cabinets lets a customer pick a door style and finish for the upper run, 
 Preconditions:
 
 - Doctor reports `v1=true`.
-- The session is in Interactive 3D.
+- If `#welcome` is visible, complete Measure first through a template pick.
+- A layout is picked, so the assembled kitchen is on the canvas.
 
 - **Select lower bank.** Choose **Lower cabinets**. Run `control-studio browser click --selector "[data-bank=lower]"`. `#style-label` reads `Lower door style`.
 - **Change style.** Choose Slim Shaker. Run `control-studio browser fill --selector "#style" --value "slim-shaker"`. `#lower-summary` includes `Slim Shaker`.
@@ -34,4 +35,4 @@ Preconditions:
 - Style options refill when the bank changes. Read `#style-label` before picking a value.
 - **Use on both** copies only the active bank. It does not copy countertop or floor.
 - Finish swatches are unlabeled color buttons. Assert `#finish-name` and the canvas `data-*-finish` attributes, not the swatch index.
-- The kitchen GLB can take several seconds. Wait for `#loading` to hide and `#load-error` to stay hidden.
+- Assembling sku-v1 meshes can take several seconds. Wait for `#loading` to hide and `#load-error` to stay hidden. `#scene-canvas` `data-preview` stays `sku`.

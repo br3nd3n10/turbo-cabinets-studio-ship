@@ -8,9 +8,15 @@
 <style>
 :root{--paper:#fff;--ink:#29372e;--muted:#747a70;--line:#d9ddd2}
 *{box-sizing:border-box}body{margin:0;font-family:'League Spartan',sans-serif;color:var(--ink);background:var(--paper);padding:40px 28px}
-h1{font-weight:400;font-size:36px;letter-spacing:-.04em;margin:0 0 8px}
-p{color:var(--muted);max-width:560px;line-height:1.5}
-.cards{display:grid;gap:18px;margin-top:28px;max-width:820px}
+.eyebrow{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin:0 0 12px}
+h1{font-weight:400;font-size:36px;letter-spacing:-.02em;margin:0 0 12px}
+p{color:var(--muted);max-width:620px;line-height:1.55;margin:0 0 14px}
+ol{max-width:620px;color:var(--ink);line-height:1.5;padding-left:20px;margin:8px 0 20px}
+li{margin:0 0 8px}
+li span{color:var(--muted)}
+.note{max-width:620px;border:1px solid var(--line);border-radius:8px;padding:14px 16px;margin:8px 0 32px}
+.cards{display:grid;gap:18px;max-width:820px}
+.cards h2{font-weight:400;font-size:22px;letter-spacing:-.02em;margin:0 0 12px}
 a{display:block;border:1px solid var(--line);border-radius:8px;padding:20px 22px;color:inherit;text-decoration:none}
 a:hover{border-color:var(--ink)}
 strong{display:block;font-size:18px;margin-bottom:6px}
@@ -18,13 +24,24 @@ small{color:var(--muted);line-height:1.45;display:block}
 </style>
 </head>
 <body>
-<h1>Four ways to build a kitchen.</h1>
-<p>These are throwaway sketches. They share the same job (tape the L, pick a look, send it to the shop) and differ in how a non-technical customer gets there. Open each one and walk through it.</p>
+<p class="eyebrow">Turbo Cabinets · A first look</p>
+<h1>Design your kitchen, then send it to the shop.</h1>
+<p>This is a customer path, not Noah’s live website. You are trying how a homeowner should start. The real 3D kitchen is not in these pages yet. The point is the conversation before the model.</p>
+<p>Turbo needs two things from you so they can model a kitchen that fits your room and looks the way you want.</p>
+<ol>
+ <li><strong>Your two cabinet walls.</strong> <span>One wall has the stove. The other has the sink. Those lengths are what the cabinets have to fit.</span></li>
+ <li><strong>A look.</strong> <span>Door style and color. You can change this later. It tells Turbo how to dress the boxes.</span></li>
+ <li><strong>Send it.</strong> <span>In the real app that becomes a job file. Turbo uses it to lay out and model your kitchen. These sketches only pretend to send.</span></li>
+</ol>
+<div class="note">
+ <p style="margin:0">Each card below is a different way to ask those same three things. Open one, click all the way through, then come back and try another. Nothing here changes the live site.</p>
+</div>
 <div class="cards">
- <a href="guided-visit.html"><strong>1. Kitchen visit</strong><small>Three steps with one job each. First the tape on a labeled L drawing. Then the look. Then send it to Turbo.</small></a>
- <a href="showroom-first.html"><strong>2. Showroom first</strong><small>Start by picking a look you like. Room sizes wait until you are ready to send the job.</small></a>
- <a href="one-question.html"><strong>3. One question</strong><small>Ask one plain question at a time. No mode tabs. No upper and lower until the tape is done.</small></a>
- <a href="tap-the-walls.html"><strong>4. Tap the walls</strong><small>The kitchen picture is the form. Tap a wall, type how long it is, then pick colors on the same picture.</small></a>
+ <h2>Four ways to go through that</h2>
+ <a href="guided-visit.html"><strong>1. Kitchen visit</strong><small>A short hello, then three steps. Walls on a labeled L, then the look, then send.</small></a>
+ <a href="showroom-first.html"><strong>2. Showroom first · chosen for V1</strong><small>A short hello, then play with doors and colors. Room sizes wait until you are ready to send. This is the path now on the isolated V1 builder.</small></a>
+ <a href="one-question.html"><strong>3. One question</strong><small>A short hello, then one plain question at a time. No mode tabs.</small></a>
+ <a href="tap-the-walls.html"><strong>4. Tap the walls</strong><small>A short hello, then the kitchen picture is the form. Tap a wall, type the length, pick a look.</small></a>
 </div>
 </body>
 </html>

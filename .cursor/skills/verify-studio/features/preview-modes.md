@@ -1,35 +1,34 @@
-# Preview modes
+# Preview
 
-Preview modes let a customer look at the same kitchen as Interactive 3D, High-quality images, or a measured Layout, from Kitchen or Close-up.
+The picked layout is the kitchen. 3D is the only view. A customer looks at it from Kitchen or Close-up, orbits it, and saves a still of it.
 
 ## Sub-features
 
-- `mode-interactive` shows the live WebGL kitchen and orbit tools.
-- `mode-image` shows stored images and hides orbit tools.
-- `mode-layout` shows the placed cabinet boxes after a confirmed tape.
 - `view-kitchen` and `view-detail` switch Kitchen and Close-up.
+- `orbit` drags, scrolls, and uses **+**, **−**, and reset.
+- `save-view` downloads a PNG still of this kitchen from **Save view ↓**.
 
 ## How to get to it (user POV)
 
-- Choose **Interactive 3D**, **High-quality images**, or **Layout**.
 - Choose **Kitchen** or **Close-up**.
-- Drag, scroll, or use **+**, **−**, and reset in Interactive 3D.
+- Drag, scroll, or use **+**, **−**, and reset.
+- Choose **Save view ↓** for a still.
 
 ## Driving it with control-studio
 
 Preconditions:
 
 - Doctor reports `v1=true`.
-- Layout proofs first complete Measure the L.
+- If `#welcome` is visible, complete Measure first through a template pick.
 
-- **Interactive.** Choose **Interactive 3D**. Run `control-studio browser click --selector "[data-mode=interactive]"`. `#mode-caption` reads `Interactive 3D`. `.orbit-tools` is visible. `#live-stage` is visible.
-- **Close-up.** Choose **Close-up**. Run `control-studio browser click --selector "[data-view=detail]"`. That button is pressed.
-- **Images.** Choose **High-quality images**. Run `control-studio browser click --selector "[data-mode=image]"`. `#mode-caption` reads `High-quality image`. `#image-stack` is visible. `#live-stage` is hidden. `.orbit-tools` is hidden.
-- **Layout.** After a confirmed room, choose **Layout**. Run `control-studio browser click --selector "[data-mode=layout]"`. `#mode-caption` reads `Layout`. `#layout-legend` is visible. `.viewbar` is hidden.
-- **Proof.** Run `control-studio browser screenshot --path .cursor/skills/verify-studio/artifacts/preview-modes/image.png` in image mode and again in layout mode as `layout.png`. Each file shows the matching `#mode-caption`.
+- **Close-up.** Choose **Close-up**. Run `control-studio browser click --selector "[data-view=detail]"`. That button is pressed. `#mode-caption` still reads `Interactive 3D`.
+- **Kitchen.** Choose **Kitchen**. Run `control-studio browser click --selector "[data-view=kitchen]"`. That button is pressed.
+- **Still.** Choose **Save view ↓**. Run `control-studio browser click --selector "#download"`. `#snapshot` opens with `#snapshot-image` set and a `Download PNG ↓` link.
+- **Proof.** Run `control-studio browser screenshot --path .cursor/skills/verify-studio/artifacts/preview-modes/close-up.png` in Close-up. `.viewbar` shows Kitchen, Close-up, Room sizes, Save view, and Save job, and no preview mode row above it.
 
 ## Gotchas
 
-- Layout without a room opens Measure. That is not a failed Layout control.
-- Image mode needs the V1 host's section images. A local overlay that fetched only GLBs cannot prove image mode.
+- There is no Interactive 3D, High-quality images, or Layout control. `[data-mode]` must not exist in the page. Doctor fails when it does.
+- `#scene-canvas` `data-preview` stays `sku` after a pick. Layout boxes are gone.
 - A custom 3D orbit changes `#mode-caption` to `Custom 3D view`. Reset returns to Kitchen.
+- A profile that stored an older `mode` of `image` or `layout` is pinned back to `interactive` on load.
