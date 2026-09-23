@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { SKU } from './inventory.js';
+import { wallChain } from './pack.js';
 
 const IN = 0.0254;
 const STATE_KEY = 'turbo-cabinet-studio-v5';
@@ -14,6 +15,214 @@ const META = Object.fromEntries([...SKU.values()].map((sku) => [sku.id, {
 const OPENING_SKU = { range: 'RANGE1.30', dishwasher: 'DISH-IQ6', fridge: 'REF.2D.36' };
 
 let viewer = null;
+let paint = null;
+let openDoor = null;
+const DOOR_OPEN = Math.PI / 3;
+
+function selectionKey(target) {
+  if (!target || target.wallId == null || target.start == null) return '';
+  return `${target.wallId}:${target.start}:${target.bank || 'base'}`;
+}
+
+function formatIn(value) {
+  return String(Math.round(value * 1000) / 1000);
+}
+
+function swapMaterial(node, from, to) {
+  node.traverse((mesh) => {
+    if (!mesh.isMesh || !from) return;
+    const list = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
+    let changed = false;
+    const next = list.map((slot) => {
+      if (slot !== from && slot?.name !== to.name) return slot;
+      changed = true;
+      return to;
+    });
+    if (changed) mesh.material = Array.isArray(mesh.material) ? next : next[0];
+  });
+}
+
+function tintCabinet(g, node, bankName, spec) {
+  const bank = g.banks[bankName];
+  const finish = bank.finish.clone();
+  finish.color.set(spec.bodyColor || spec.color);
+  finish.map = ['wood', 'mineral'].includes(spec.texture) ? g.texture(spec.texture) : null;
+  finish.roughness = spec.texture === 'gloss' ? 0.13 : spec.texture === 'wood' ? 0.42 : 0.34;
+  finish.clearcoat = spec.texture === 'gloss' ? 1 : 0;
+  finish.clearcoatRoughness = 0.08;
+  finish.needsUpdate = true;
+  const hardware = bank.hardware.clone();
+  hardware.color.set(spec.hardware === 'brass' ? '#c89d51' : '#25292b');
+  hardware.metalness = spec.hardware === 'brass' ? 0.82 : 0.35;
+  const frame = bank.frame.clone();
+  frame.color.set(spec.frameColor || '#252b27');
+  const glass = bank.glass.clone();
+  glass.color.set(spec.color);
+  glass.transmission = spec.fluted ? 0.93 : 0.65;
+  glass.roughness = spec.fluted ? 0.13 : 0.18;
+  if (spec.fluted && g.flutedNormal) glass.normalMap = g.flutedNormal();
+  glass.needsUpdate = true;
+  finish.name = 'CABINET_FINISH';
+  hardware.name = 'CABINET_HARDWARE';
+  frame.name = 'CABINET_FRAME';
+  glass.name = 'CABINET_GLASS';
+  swapMaterial(node, bank.finish, finish);
+  swapMaterial(node, bank.hardware, hardware);
+  swapMaterial(node, bank.frame, frame);
+  swapMaterial(node, bank.glass, glass);
+}
+
+function makeSprite(text) {
+  const canvas = document.createElement('canvas');
+  canvas.width = 256;
+  canvas.height = 128;
+  const ctx = canvas.getContext('2d');
+  ctx.fillStyle = 'rgba(255,255,255,0.94)';
+  ctx.fillRect(8, 24, 240, 80);
+  ctx.fillStyle = '#29372e';
+  ctx.font = '700 64px League Spartan, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(text, 128, 64);
+  const map = new THREE.CanvasTexture(canvas);
+  map.colorSpace = THREE.SRGBColorSpace;
+  const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map, depthTest: false }));
+  sprite.renderOrder = 5;
+  return sprite;
+}
+
+function labelWalls(g, room, rows) {
+  const host = document.querySelector('#wall-labels');
+  const chain = room?.walls ? wallChain(room, rows, SKU) : [];
+  const names = { range: 'Stove wall', sink: 'Sink wall' };
+  if (host) {
+    host.replaceChildren(...chain.map((wall) => {
+      const line = document.createElement('p');
+      const sum = formatIn(wall.parts.reduce((total, part) => total + part, 0));
+      line.textContent = `${names[wall.wallId] || wall.wallId} ${wall.parts.map(formatIn).join(' + ')} = ${sum} in`;
+      return line;
+    }));
+    host.dataset.labels = chain.map((wall) => `${wall.wallId}:${wall.parts.map(formatIn).join('+')}=${formatIn(wall.length)}`).join(' ');
+    host.hidden = document.body.dataset.phase !== 'ready' || !chain.length;
+  }
+  if (g.labelRoot) {
+    g.scene.remove(g.labelRoot);
+    g.labelRoot.traverse((node) => {
+      node.material?.map?.dispose?.();
+      node.material?.dispose?.();
+    });
+    g.labelRoot = null;
+  }
+  if (!chain.length) return;
+  g.labelRoot = new THREE.Group();
+  g.labelRoot.name = 'wall-labels';
+  for (const wall of chain) {
+    let at = 0;
+    for (const part of wall.parts) {
+      const sprite = makeSprite(formatIn(part));
+      const mid = (at + part / 2) * IN;
+      const out = (24 + 10) * IN;
+      if (wall.wallId === 'sink') sprite.position.set(out, 0.42, mid);
+      else sprite.position.set(mid, 0.42, out);
+      const scale = Math.min(0.46, Math.max(0.18, part * IN * 0.85));
+      sprite.scale.set(scale, scale * 0.5, 1);
+      g.labelRoot.add(sprite);
+      at += part;
+    }
+  }
+  g.scene.add(g.labelRoot);
+}
+
+function frontOf(root) {
+  let found = null;
+  root.traverse((node) => {
+    if (node.userData?.role === 'fronts' || String(node.name || '').startsWith('fronts')) found = node;
+  });
+  return found;
+}
+
+function pivotOf(root) {
+  let found = null;
+  root.traverse((node) => {
+    if (node.name === 'door-pivot') found = node;
+  });
+  return found;
+}
+
+function hingeFront(front, side) {
+  if (!front || front.userData.hinged) return pivotOf(front?.parent || front);
+  const box = new THREE.Box3();
+  let any = false;
+  front.traverse((mesh) => {
+    if (!mesh.isMesh || !mesh.geometry) return;
+    if (!mesh.geometry.boundingBox) mesh.geometry.computeBoundingBox();
+    box.union(mesh.geometry.boundingBox.clone().applyMatrix4(mesh.matrix));
+    any = true;
+  });
+  if (!any || box.isEmpty()) return null;
+  const hingeX = side === 'right' ? box.max.x : box.min.x;
+  const pivot = new THREE.Group();
+  pivot.name = 'door-pivot';
+  pivot.userData.side = side;
+  front.parent.add(pivot);
+  pivot.position.set(hingeX, 0, 0);
+  pivot.attach(front);
+  front.userData.hinged = true;
+  return pivot;
+}
+
+function applyOpenDoor(g) {
+  const canvas = g.renderer.domElement;
+  for (const child of g.skuRoot?.children || []) {
+    const pivot = pivotOf(child);
+    if (!pivot) continue;
+    const open = openDoor && selectionKey(child.userData) === openDoor;
+    pivot.rotation.y = open ? (pivot.userData.side === 'right' ? DOOR_OPEN : -DOOR_OPEN) : 0;
+  }
+  if (openDoor) canvas.dataset.door = openDoor;
+  else delete canvas.dataset.door;
+}
+
+globalThis.STUDIO_DOOR_OPEN = () => openDoor || '';
+
+globalThis.STUDIO_CLOSE_DOOR = () => {
+  openDoor = null;
+  if (!viewer) return;
+  applyOpenDoor(viewer);
+  viewer.invalidate?.();
+};
+
+globalThis.STUDIO_TOGGLE_DOOR = () => {
+  const sel = globalThis.STUDIO_SELECTION?.();
+  const key = selectionKey(sel);
+  const skuId = sel?.skuId || document.querySelector('#scene-canvas')?.dataset.selected?.split(':')[2];
+  const sku = skuId && SKU.get(skuId);
+  if (!key || !sku || (sku.kind !== 'base' && sku.kind !== 'upper')) return;
+  openDoor = openDoor === key ? null : key;
+  if (!viewer) return;
+  applyOpenDoor(viewer);
+  viewer.invalidate?.();
+  const canvas = viewer.renderer.domElement;
+  const parts = (canvas.dataset.selected || '').split(':');
+  highlight(parts.length >= 3 ? { wallId: parts[0], start: Number(parts[1]), skuId: parts[2], bank: META[parts[2]]?.bank } : null);
+};
+
+globalThis.STUDIO_PAINT = (scope, spec) => {
+  const note = document.querySelector('#finish-scope-note');
+  if (scope === 'one') {
+    const sel = globalThis.STUDIO_SELECTION?.();
+    if (!sel) {
+      if (note) note.textContent = 'Select a cabinet, then pick a finish.';
+      return false;
+    }
+    paint = { scope: 'one', key: selectionKey(sel), spec };
+    if (note) note.textContent = `${spec.name} on this cabinet.`;
+    return true;
+  }
+  paint = scope === 'all' && spec ? { scope: 'all', spec } : null;
+  if (note && spec && scope === 'all') note.textContent = `${spec.name} on every cabinet.`;
+  return scope === 'all';
+};
 
 function storedRoom() {
   try {
@@ -168,6 +377,10 @@ async function assembleSku(g, design, rows, opts = {}) {
   if (opts.layout) return true;
   g.applyFinish('upper', design.upper.finish);
   g.applyFinish('lower', design.lower.finish);
+  if (paint?.scope === 'all') {
+    g.applyFinish('upper', paint.spec);
+    g.applyFinish('lower', paint.spec);
+  }
   if (!g.skuRoot) {
     g.skuRoot = new THREE.Group();
     g.skuRoot.name = 'sku-kitchen';
@@ -190,6 +403,8 @@ async function assembleSku(g, design, rows, opts = {}) {
     if (!source) continue;
     const node = source.clone(true);
     bindMaterials(node, g.banks[bankName]);
+    if (meta.kind === 'base' || meta.kind === 'upper') hingeFront(frontOf(node), /-R$/.test(meta.id) ? 'right' : 'left');
+    if (paint?.scope === 'one' && selectionKey({ wallId: row.wallId, start: row.start, bank: meta.bank }) === paint.key) tintCabinet(g, node, bankName, paint.spec);
     place(node, row, meta);
     node.userData.style = style;
     g.skuRoot.add(node);
@@ -201,12 +416,19 @@ async function assembleSku(g, design, rows, opts = {}) {
   canvas.dataset.skuStyles = placed.join(',');
   canvas.dataset.upperStyle = design.upper.style.id;
   canvas.dataset.lowerStyle = design.lower.style.id;
-  canvas.dataset.upperFinish = design.upper.finish.id;
-  canvas.dataset.lowerFinish = design.lower.finish.id;
+  canvas.dataset.upperFinish = paint?.scope === 'all' ? paint.spec.id : design.upper.finish.id;
+  canvas.dataset.lowerFinish = paint?.scope === 'all' ? paint.spec.id : design.lower.finish.id;
+  canvas.dataset.finishScope = paint?.scope || 'bank';
+  if (paint?.spec?.name) canvas.dataset.finishName = paint.spec.name;
+  else delete canvas.dataset.finishName;
+  if (paint?.scope === 'one') canvas.dataset.finishOne = paint.key;
+  else delete canvas.dataset.finishOne;
   canvas.setAttribute('aria-label', `Assembled kitchen: ${placed.join(' ')}`);
   const caption = document.querySelector('#mode-caption');
   if (opts.still && caption) caption.textContent = 'This kitchen';
   document.querySelector('.image-stage')?.classList.toggle('quality-mode', Boolean(opts.still));
+  labelWalls(g, room, rows);
+  applyOpenDoor(g);
   const selection = canvas.dataset.selected?.split(':');
   highlight(selection ? { wallId: selection[0], start: Number(selection[1]), skuId: selection[2], bank: META[selection[2]]?.bank } : null);
   g.resize?.();
