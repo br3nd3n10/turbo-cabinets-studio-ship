@@ -54,6 +54,43 @@ function packWall(wall, skus, cutFace, blind, strip, depth) {
   return [...joint(depth), ...runs(wall, past).flatMap((run) => fillRun(run, wall, skus, cutFace))];
 }
 
+function roundIn(value) {
+  return Math.round(value * 1000) / 1000;
+}
+
+// Widths along each taped wall, in order, including the corner return, openings, and leftover cuts.
+// The parts add up to the wall length the customer typed.
+export function wallChain(room, rows, inventory) {
+  const list = rows || [];
+  const blind = list.find((row) => !row.cut && row.wallId === 'range' && inventory.get(row.skuId)?.blind && inventory.get(row.skuId)?.bank === 'base');
+  const corner = blind ? inventory.get(blind.skuId).depth : 0;
+  return (room?.walls || []).map((wall) => {
+    const pieces = [];
+    if (wall.id === 'sink' && corner > 0) pieces.push({ start: 0, width: corner });
+    for (const row of list) {
+      if (row.wallId !== wall.id) continue;
+      const sku = row.cut ? null : inventory.get(row.skuId);
+      if (!row.cut && sku?.bank !== 'base') continue;
+      const width = row.cut ? row.width : sku?.width || 0;
+      if (width > 0) pieces.push({ start: row.start, width });
+    }
+    for (const opening of wall.openings || []) pieces.push({ start: opening.start, width: opening.width });
+    pieces.sort((a, b) => a.start - b.start || a.width - b.width);
+    const parts = [];
+    let at = 0;
+    for (const piece of pieces) {
+      if (piece.start > at + EPS) parts.push(roundIn(piece.start - at));
+      const end = piece.start + piece.width;
+      if (end > at + EPS) {
+        parts.push(roundIn(Math.min(end, wall.length) - Math.max(piece.start, at)));
+        at = Math.max(at, end);
+      }
+    }
+    if (wall.length > at + EPS) parts.push(roundIn(wall.length - at));
+    return { wallId: wall.id, length: wall.length, parts };
+  });
+}
+
 export function packRoom(room, skus, { cutFace = null, filler = null } = {}) {
   const walls = room?.walls || [];
   const regular = skus.filter((sku) => !sku.blind);
