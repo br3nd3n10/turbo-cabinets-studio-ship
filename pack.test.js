@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { candidates, packRoom, swapRow } from './pack.js';
+import { candidates, packRoom, swapRow, wallChain } from './pack.js';
 import { FILLER, INVENTORY, SKU, pick } from './inventory.js';
 
 const ROOM = {
@@ -189,5 +189,11 @@ assert.deepEqual(swappedUppers.filter((row) => row.wallId === 'range').map(label
 assert.deepEqual(openFloor(swappedUppers, ALL), [], 'the upper swap opened the corner');
 assert.deepEqual(swapRow(ROOM, layout, { wallId: 'sink', start: 15, bank: 'upper' }, 'W3615', LONGER_UPPERS, { inventory: SKU }), layout, 'a box that would stand in the door swing is refused');
 assert.deepEqual(swapRow(ROOM, layout, { wallId: 'range', start: 3 }, 'SB36', LONGER_BASES, { cutFace: CUT_FACE, inventory: SKU }), layout, 'the blind corner box is refused');
+
+const chain = wallChain(ROOM, layout, SKU);
+const summed = (parts) => Math.round(parts.reduce((total, part) => total + part, 0) * 1000) / 1000;
+assert.deepEqual(chain.map((wall) => [wall.wallId, summed(wall.parts), wall.length]), [['range', 169.5, 169.5], ['sink', 128.25, 128.25]], 'wall labels add up to the taped lengths');
+assert.deepEqual(chain[0].parts, [3, 39, 30, 36, 36, 18, 7.5], 'stove wall labels');
+assert.deepEqual(chain[1].parts, [24, 3, 36, 36, 18, 11.25], 'sink wall labels');
 
 console.log('pack.test.js ok');
