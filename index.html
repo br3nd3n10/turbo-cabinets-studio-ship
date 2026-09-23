@@ -33,7 +33,7 @@
 <main>
  <section class="canvas" aria-label="Kitchen preview">
   <div class="viewbar"><div class="segmented" role="group" aria-label="Camera view"><button data-view="kitchen" aria-pressed="true">Kitchen</button><button data-view="detail" aria-pressed="false">Close-up</button></div><div class="viewbar-actions"><button type="button" id="measure-open" class="quiet">Room sizes</button><button id="download" class="quiet" disabled>Save view ↓</button><button type="button" id="job-download" disabled>Save job ↓</button></div></div>
-  <div class="image-stage" aria-busy="true"><div id="live-stage"></div><div id="image-stack" role="img" aria-label="Kitchen image" hidden></div><div id="layout-legend" hidden></div><div class="loading" id="loading" role="status">Loading your kitchen…</div><div id="load-error" hidden><p id="error-message"></p><button id="retry">Try again</button></div>
+  <div class="image-stage" aria-busy="true"><div id="live-stage"></div><div id="room-preview" hidden></div><div id="image-stack" role="img" aria-label="Kitchen image" hidden></div><div id="layout-legend" hidden></div><div id="wall-labels" hidden></div><div class="loading" id="loading" role="status">Loading your kitchen…</div><div id="load-error" hidden><p id="error-message"></p><button id="retry">Try again</button></div>
    <div class="orbit-tools" role="group" aria-label="3D navigation"><button id="zoom-in" aria-label="Zoom in">+</button><button id="zoom-out" aria-label="Zoom out">−</button><button id="reset" aria-label="Reset view">↺</button></div>
 
   </div>
@@ -52,7 +52,9 @@
    <div class="eyebrow">Swap this cabinet</div>
    <h2 id="swap-title"></h2>
    <p class="showroom-lead" id="swap-note"></p>
+   <div id="swap-current"></div>
    <div id="swap-list" class="swap-list" role="group" aria-label="Cabinets that fit here"></div>
+   <button type="button" id="open-door" hidden>Open door</button>
    <button type="button" id="swap-close" class="quiet">Done</button>
   </section>
   <div class="cabinet-controls">
@@ -67,6 +69,11 @@
    <label for="style" id="style-label">Upper door style</label><select id="style" aria-labelledby="style-label"></select>
    <div class="finish-heading"><span id="finish-label">Upper finish</span><span id="finish-name"></span></div>
    <div id="finishes" class="swatches" role="group" aria-labelledby="finish-label"></div>
+   <div class="finish-scope" role="group" aria-label="Where this finish goes">
+    <button type="button" id="finish-one" aria-pressed="false">This cabinet</button>
+    <button type="button" id="finish-all" aria-pressed="true">Every cabinet</button>
+   </div>
+   <p id="finish-scope-note" class="note"></p>
    <div class="selection-footer"><span id="hardware-name"></span><button class="quiet" id="match-both">Use on both</button></div>
   </div>
   </div>
@@ -84,11 +91,16 @@
  <div class="dialog-top"><h2 id="measure-title">Your two walls.</h2><button id="measure-close" class="quiet" aria-label="Close room sizes">Close ×</button></div>
  <p class="measure-lead" id="measure-lead">The wall with the stove, then the wall with the sink. Add each opening you taped. Inches are fine.</p>
  <form id="measure-form">
+  <div class="shape-pick">
+   <p class="shape-label" id="shape-label">Room shape</p>
+   <div class="shape-row" id="shape-row" role="radiogroup" aria-labelledby="shape-label"></div>
+   <p id="shape-note" class="note" hidden></p>
+  </div>
   <div class="wall-fields">
    <label for="range-length">Stove wall (inches)</label>
-   <input id="range-length" name="range-length" inputmode="decimal" autocomplete="off" placeholder="169.5" aria-describedby="measure-error">
+   <input id="range-length" name="range-length" inputmode="decimal" autocomplete="off" aria-describedby="measure-error">
    <label for="sink-length">Sink wall (inches)</label>
-   <input id="sink-length" name="sink-length" inputmode="decimal" autocomplete="off" placeholder="128.25">
+   <input id="sink-length" name="sink-length" inputmode="decimal" autocomplete="off">
   </div>
   <div class="opening-head"><span>Openings</span><button type="button" id="add-opening" class="quiet">Add opening</button></div>
   <div id="opening-list"></div>
@@ -101,6 +113,7 @@
   <button type="submit" id="measure-continue">Continue</button>
  </form>
  <div id="measure-confirm" hidden>
+  <div id="confirm-shape" class="confirm-shape"></div>
   <p class="tape-echo" id="confirm-length"></p>
   <ul id="confirm-openings"></ul>
   <p id="confirm-photos" class="note"></p>
