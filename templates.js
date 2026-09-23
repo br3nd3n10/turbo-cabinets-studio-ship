@@ -144,6 +144,31 @@ function describe(row) {
   return `${row.skuId} · ${WALL_NAME[row.wallId] || row.wallId} ${bank} at ${row.start} in`;
 }
 
+function inches(value) {
+  return String(Math.round(value * 1000) / 1000);
+}
+
+function skuCard(sku, pressed) {
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.className = 'sku-card';
+  button.setAttribute('aria-pressed', String(pressed));
+  const id = document.createElement('strong');
+  id.textContent = sku.id;
+  const name = document.createElement('span');
+  name.className = 'sku-name';
+  name.textContent = sku.name || sku.id;
+  const size = document.createElement('span');
+  size.className = 'sku-size';
+  size.textContent = `W ${inches(sku.width)}  H ${inches(sku.height)}  D ${inches(sku.depth)}`;
+  button.append(id, name, size);
+  return button;
+}
+
+function selectionKey(target) {
+  return target ? `${target.wallId}:${target.start}:${target.bank}` : '';
+}
+
 function renderSwap() {
   const panel = document.querySelector('#swap');
   const list = document.querySelector('#swap-list');
@@ -156,29 +181,49 @@ function renderSwap() {
   if (!row) {
     panel.hidden = true;
     list.replaceChildren();
+    document.querySelector('#swap-current')?.replaceChildren();
+    const door = document.querySelector('#open-door');
+    if (door) door.hidden = true;
     globalThis.STUDIO_HIGHLIGHT?.(null);
     return;
   }
   const options = candidates(room, stored.rows, selected, SKU);
+  const currentSku = SKU.get(row.skuId);
   title.textContent = describe(row);
   note.textContent = options.length
     ? 'Pick another current cabinet for this spot. The rest of that run refits.'
     : 'This piece stays. The blind corner, its fillers, and the openings shape the room.';
+  const current = document.querySelector('#swap-current');
+  if (current) {
+    current.replaceChildren();
+    if (currentSku) {
+      const card = skuCard(currentSku, true);
+      card.dataset.catalog = currentSku.id;
+      current.append(card);
+    }
+  }
   list.replaceChildren(...options.map((sku) => {
-    const button = document.createElement('button');
-    button.type = 'button';
+    const button = skuCard(sku, sku.id === row.skuId);
     button.dataset.swap = sku.id;
-    button.setAttribute('aria-pressed', String(sku.id === row.skuId));
-    button.textContent = `${sku.id} · ${sku.width} in`;
     button.addEventListener('click', () => swap(sku.id));
     return button;
   }));
+  const door = document.querySelector('#open-door');
+  const canOpen = currentSku && (currentSku.kind === 'base' || currentSku.kind === 'upper');
+  if (door) {
+    const open = canOpen && globalThis.STUDIO_DOOR_OPEN?.() === selectionKey(selected);
+    door.hidden = !canOpen;
+    door.setAttribute('aria-pressed', String(Boolean(open)));
+    door.textContent = open ? 'Close door' : 'Open door';
+  }
   panel.hidden = false;
   globalThis.STUDIO_HIGHLIGHT?.({ ...selected, skuId: row.skuId });
 }
 
 function select(target) {
-  selected = target ? { wallId: target.wallId, start: target.start, bank: target.bank || SKU.get(target.skuId)?.bank || 'base' } : null;
+  const next = target ? { wallId: target.wallId, start: target.start, skuId: target.skuId, bank: target.bank || SKU.get(target.skuId)?.bank || 'base' } : null;
+  if (globalThis.STUDIO_DOOR_OPEN?.() && globalThis.STUDIO_DOOR_OPEN() !== selectionKey(next)) globalThis.STUDIO_CLOSE_DOOR?.();
+  selected = next;
   renderSwap();
 }
 
@@ -225,6 +270,11 @@ function bootTemplates() {
   globalThis.STUDIO_ON_ROOM_CONFIRMED = onRoomConfirmed;
   globalThis.STUDIO_HAS_TEMPLATE = () => Boolean(loadPick() || globalThis.STUDIO_LAYOUT_OVERRIDE?.rows);
   globalThis.STUDIO_SELECT = select;
+  globalThis.STUDIO_SELECTION = () => selected;
+  document.querySelector('#open-door')?.addEventListener('click', () => {
+    globalThis.STUDIO_TOGGLE_DOOR?.();
+    renderSwap();
+  });
   const room = storedRoom();
   const stored = migrate(loadPick(), room);
   if (stored) globalThis.STUDIO_LAYOUT_OVERRIDE = { rows: stored.rows };
