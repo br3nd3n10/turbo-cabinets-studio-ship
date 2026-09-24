@@ -448,12 +448,54 @@ function setProjectError(message) {
   node.textContent = message || '';
 }
 
+function esc(value) {
+  return String(value).replace(/[&<>]/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[ch]));
+}
+
+function planSvg(job) {
+  const here = job.room;
+  const range = here.walls.find((wall) => wall.id === 'range');
+  const sink = here.walls.find((wall) => wall.id === 'sink');
+  const scale = 2;
+  const ox = 28;
+  const oy = 28;
+  const width = (range?.length || 1) * scale + 56;
+  const height = (sink?.length || 1) * scale + 56;
+  const marks = planPieces(here, job.layout.rows, SKU).map((piece) => {
+    const along = piece.width * scale;
+    const depth = (piece.bank === 'upper' ? 12 : 24) * scale;
+    const x = piece.wallId === 'sink' ? ox : ox + piece.start * scale;
+    const y = piece.wallId === 'sink' ? oy + piece.start * scale : oy;
+    const w = piece.wallId === 'sink' ? Math.max(depth, 1) : Math.max(along, 1);
+    const h = piece.wallId === 'sink' ? Math.max(along, 1) : Math.max(depth, 1);
+    const fill = piece.cut ? '#f3e2c2' : piece.bank === 'upper' ? '#e7efe4' : '#fff';
+    const dash = piece.cut ? ' stroke-dasharray="4 3"' : '';
+    return `<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="${fill}" stroke="#29372e"${dash}/><text x="${x + 2}" y="${y + 10}" font-size="8" font-family="sans-serif">${esc(piece.cut ? piece.width : piece.skuId)}</text>`;
+  }).join('');
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${height}" width="100%">${marks}</svg>`;
+}
+
+function elevationSvg(job, wallId) {
+  const data = elevationPieces(job.room, job.layout.rows, SKU, wallId, job.room.ceiling || STUDIO_CEILING);
+  const scale = 3;
+  const width = data.length * scale + 32;
+  const height = data.ceiling * scale + 32;
+  const yOf = (inches) => 12 + (data.ceiling - inches) * scale;
+  const cabinets = data.cabinets.filter((cabinet) => !cabinet.cut && cabinet.height).map((cabinet) => {
+    const x = 16 + cabinet.start * scale;
+    const y = yOf(cabinet.bottom + cabinet.height);
+    return `<rect x="${x}" y="${y}" width="${Math.max(cabinet.width * scale, 1)}" height="${Math.max(cabinet.height * scale, 1)}" fill="${cabinet.bank === 'upper' ? '#e7efe4' : '#fff'}" stroke="#29372e"/><text x="${x + 2}" y="${y + 12}" font-size="9" font-family="sans-serif">${esc(cabinet.skuId)}</text>`;
+  }).join('');
+  const openings = data.openings.map((opening) => `<rect x="${16 + opening.start * scale}" y="12" width="${Math.max(opening.width * scale, 1)}" height="${data.ceiling * scale}" fill="none" stroke="#747a70" stroke-dasharray="4 3"/>`).join('');
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${height}" width="100%"><line x1="16" x2="${16 + data.length * scale}" y1="${yOf(0)}" y2="${yOf(0)}" stroke="#29372e" stroke-width="2"/><line x1="16" x2="${16 + data.length * scale}" y1="12" y2="12" stroke="#29372e"/>${openings}${cabinets}</svg>`;
+}
+
 function packetHtml(job) {
   const here = job.room;
-  const lines = parts(job.layout.rows, SKU).map((line) => `<li>${line.name}${line.skuId ? ` (${line.skuId})` : ''} — ${line.status}${line.places?.length ? ` — ${line.places.join('; ')}` : ''}</li>`).join('');
-  const issues = checks(here, job.layout.rows, SKU, { ceiling: here.ceiling || STUDIO_CEILING }).map((issue) => `<li>${issue.message}</li>`).join('');
-  const walls = chainText(here, job.layout.rows, SKU).map((line) => `<li>${line}</li>`).join('');
-  return `<!doctype html><meta charset="utf-8"><title>${job.name} plan</title><body style="font-family:Georgia,serif;max-width:760px;margin:40px auto;line-height:1.5"><h1>${job.name}</h1><p>This packet is a drawing for a homeowner or installer. It is not an installation approval. Outstanding checks are listed below. No prices.</p><h2>Measurements</h2><ul>${walls}</ul><p>Ceiling ${here.ceiling || STUDIO_CEILING} in.</p><h2>Parts</h2><ul>${lines}</ul><h2>Checks</h2><ul>${issues}</ul></body>`;
+  const lines = parts(job.layout.rows, SKU).map((line) => `<li>${esc(line.name)}${line.skuId ? ` (${esc(line.skuId)})` : ''} — ${esc(line.status)}${line.places?.length ? ` — ${esc(line.places.join('; '))}` : ''}</li>`).join('');
+  const issues = checks(here, job.layout.rows, SKU, { ceiling: here.ceiling || STUDIO_CEILING }).map((issue) => `<li>${esc(issue.message)}</li>`).join('');
+  const walls = chainText(here, job.layout.rows, SKU).map((line) => `<li>${esc(line)}</li>`).join('');
+  return `<!doctype html><meta charset="utf-8"><title>${esc(job.name)} plan</title><body style="font-family:Georgia,serif;max-width:760px;margin:40px auto;line-height:1.5"><h1>${esc(job.name)}</h1><p>This packet is a drawing for a homeowner or installer. It is not an installation approval. Outstanding checks are listed below. No prices. The orbiting 3D view stays in the studio.</p><h2>Plan</h2>${planSvg(job)}<h2>Stove wall</h2>${elevationSvg(job, 'range')}<h2>Sink wall</h2>${elevationSvg(job, 'sink')}<h2>Measurements</h2><ul>${walls}</ul><p>Ceiling ${here.ceiling || STUDIO_CEILING} in.</p><h2>Parts</h2><ul>${lines}</ul><h2>Checks</h2><ul>${issues}</ul></body>`;
 }
 
 function annotateRoom(parsed) {
