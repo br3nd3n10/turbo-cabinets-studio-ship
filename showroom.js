@@ -1,3 +1,6 @@
+import { SKU } from './inventory.js';
+import { scopeNote } from './review.js';
+
 const STATE = 'turbo-cabinet-studio-v5';
 const TITLES = { form: 'Your two walls.', confirm: 'Check these lengths.' };
 const WALLS = { range: 'Stove wall', sink: 'Sink wall' };
@@ -81,7 +84,13 @@ function paintShapes() {
     button.dataset.shape = item.id;
     button.setAttribute('aria-pressed', String(item.id === shape));
     button.append(shapeSvg(item.id, item.id === shape), document.createTextNode(item.name));
-    button.addEventListener('click', () => chooseShape(item.id));
+    if (item.id !== 'two') {
+      button.disabled = true;
+      button.title = 'Not in this studio yet';
+      const soon = document.createElement('small');
+      soon.textContent = 'Not yet';
+      button.append(soon);
+    } else button.addEventListener('click', () => chooseShape(item.id));
     return button;
   }));
 }
@@ -96,8 +105,8 @@ function chooseShape(next) {
   });
   const note = document.querySelector('#shape-note');
   if (!note) return;
-  note.hidden = next === 'two';
-  note.textContent = next === 'two' ? '' : 'This studio lays out the two-wall kitchen. Choose Two walls, then type both lengths.';
+  note.hidden = false;
+  note.textContent = 'Only two walls are ready. The other shapes are marked so they are not choices.';
 }
 
 function drawConfirm() {
@@ -151,6 +160,13 @@ function setPhase(next) {
   }
   const labels = document.querySelector('#wall-labels');
   if (labels && next !== 'ready') labels.hidden = true;
+  if (next === 'welcome' || next === 'templates' || next === 'sizing') {
+    const err = document.querySelector('#load-error');
+    const loading = document.querySelector('#loading');
+    if (err) err.hidden = true;
+    if (loading) loading.hidden = true;
+    document.querySelector('.image-stage')?.setAttribute('aria-busy', 'false');
+  }
   const heading = document.querySelector('.options-intro h1');
   if (heading) heading.textContent = next === 'ready' ? 'Doors and color stay yours.' : 'The room comes first.';
   const main = document.querySelector('main');
@@ -233,26 +249,36 @@ function guardShape(event) {
 }
 
 function finishScope(button) {
-  const one = document.querySelector('#finish-one');
-  const all = document.querySelector('#finish-all');
-  const chosen = button?.id === 'finish-one' ? 'one' : 'all';
-  one?.setAttribute('aria-pressed', String(chosen === 'one'));
-  all?.setAttribute('aria-pressed', String(chosen === 'all'));
+  const map = [['finish-one', 'one'], ['finish-uppers', 'uppers'], ['finish-lowers', 'lowers'], ['finish-kitchen', 'kitchen']];
+  const chosen = map.find(([id]) => id === button?.id)?.[1] || 'lowers';
+  for (const [id, scope] of map) document.querySelector('#' + id)?.setAttribute('aria-pressed', String(scope === chosen));
   const note = document.querySelector('#finish-scope-note');
-  if (note && chosen === 'one' && !globalThis.STUDIO_SELECTION?.()) note.textContent = 'Select a cabinet, then pick a finish.';
-  document.querySelector('#finishes button[aria-pressed="true"]')?.click();
+  if (note) note.textContent = scopeNote(chosen, '', globalThis.STUDIO_ROWS?.() || [], SKU);
 }
 
 function boot() {
   globalThis.STUDIO_SET_PHASE = setPhase;
-  globalThis.STUDIO_FINISH_SCOPE = () => (document.querySelector('#finish-one')?.getAttribute('aria-pressed') === 'true' ? 'one' : 'all');
+  globalThis.STUDIO_FINISH_SCOPE = () => {
+    const map = [['finish-one', 'one'], ['finish-uppers', 'uppers'], ['finish-lowers', 'lowers'], ['finish-kitchen', 'kitchen']];
+    return map.find(([id]) => document.querySelector('#' + id)?.getAttribute('aria-pressed') === 'true')?.[1] || 'lowers';
+  };
   pinInteractive();
   paintShapes();
   chooseShape('two');
   startPhase();
   document.querySelector('#measure-form')?.addEventListener('submit', guardShape, true);
-  document.querySelector('#finish-one')?.addEventListener('click', (event) => finishScope(event.currentTarget));
-  document.querySelector('#finish-all')?.addEventListener('click', (event) => finishScope(event.currentTarget));
+  for (const id of ['finish-one', 'finish-uppers', 'finish-lowers', 'finish-kitchen']) {
+    document.querySelector('#' + id)?.addEventListener('click', (event) => finishScope(event.currentTarget));
+  }
+  finishScope(document.querySelector('#finish-lowers'));
+  const diagram = document.querySelector('#measure-diagram');
+  if (diagram && !diagram.childElementCount) {
+    diagram.append(roomSvg('', ''));
+    const guide = document.createElement('p');
+    guide.className = 'note';
+    guide.textContent = 'Start is measured from the inside corner, where the stove wall meets the sink wall. Zero is that corner. Inches run along the wall you pick.';
+    diagram.append(guide);
+  }
   document.querySelector('#welcome-enter')?.addEventListener('click', openSizes);
   document.querySelector('#measure')?.addEventListener('close', onMeasureClose);
   const title = document.querySelector('#measure-title');
