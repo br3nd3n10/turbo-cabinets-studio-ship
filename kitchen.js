@@ -103,6 +103,12 @@ function labelWalls(g, room, rows) {
       return line;
     }));
     host.dataset.labels = chain.map((wall) => `${wall.wallId}:${wall.parts.map(formatIn).join('+')}=${formatIn(wall.length)}`).join(' ');
+    const gaps = (rows || []).filter((row) => row.cut);
+    if (gaps.length) {
+      const note = document.createElement('p');
+      note.textContent = gaps.map((gap) => `${formatIn(gap.width)} in on the ${names[gap.wallId] || gap.wallId} is an unresolved gap, not a cabinet to cut.`).join(' ');
+      host.append(note);
+    }
     host.hidden = document.body.dataset.phase !== 'ready' || !chain.length;
   }
   if (g.labelRoot) {
@@ -207,8 +213,20 @@ globalThis.STUDIO_TOGGLE_DOOR = () => {
   highlight(parts.length >= 3 ? { wallId: parts[0], start: Number(parts[1]), skuId: parts[2], bank: META[parts[2]]?.bank } : null);
 };
 
+globalThis.STUDIO_FINISH_OVERRIDE = () => paint;
+globalThis.STUDIO_SET_FINISH_OVERRIDE = (next) => { paint = next || null; };
+
 globalThis.STUDIO_PAINT = (scope, spec) => {
   const note = document.querySelector('#finish-scope-note');
+  if (scope === 'clear') {
+    paint = null;
+    if (note && spec) {
+      const chosen = globalThis.STUDIO_FINISH_SCOPE?.() || 'lowers';
+      const where = chosen === 'uppers' ? 'every upper cabinet. Lowers stay as they are.' : chosen === 'kitchen' ? 'the entire kitchen, uppers and lowers.' : 'every lower cabinet. Uppers stay as they are.';
+      note.textContent = `${spec.name} on ${where}`;
+    }
+    return true;
+  }
   if (scope === 'one') {
     const sel = globalThis.STUDIO_SELECTION?.();
     if (!sel) {
@@ -216,12 +234,11 @@ globalThis.STUDIO_PAINT = (scope, spec) => {
       return false;
     }
     paint = { scope: 'one', key: selectionKey(sel), spec };
-    if (note) note.textContent = `${spec.name} on this cabinet.`;
+    if (note) note.textContent = `${spec.name} on this cabinet only.`;
     return true;
   }
-  paint = scope === 'all' && spec ? { scope: 'all', spec } : null;
-  if (note && spec && scope === 'all') note.textContent = `${spec.name} on every cabinet.`;
-  return scope === 'all';
+  paint = null;
+  return false;
 };
 
 function storedRoom() {
@@ -377,10 +394,7 @@ async function assembleSku(g, design, rows, opts = {}) {
   if (opts.layout) return true;
   g.applyFinish('upper', design.upper.finish);
   g.applyFinish('lower', design.lower.finish);
-  if (paint?.scope === 'all') {
-    g.applyFinish('upper', paint.spec);
-    g.applyFinish('lower', paint.spec);
-  }
+  if (globalThis.STUDIO_WALL_COLOR) g.scene.background.set(globalThis.STUDIO_WALL_COLOR);
   if (!g.skuRoot) {
     g.skuRoot = new THREE.Group();
     g.skuRoot.name = 'sku-kitchen';
@@ -428,14 +442,40 @@ async function assembleSku(g, design, rows, opts = {}) {
   if (opts.still && caption) caption.textContent = 'This kitchen';
   document.querySelector('.image-stage')?.classList.toggle('quality-mode', Boolean(opts.still));
   labelWalls(g, room, rows);
+  applySplash(g, room);
   applyOpenDoor(g);
   const selection = canvas.dataset.selected?.split(':');
   highlight(selection ? { wallId: selection[0], start: Number(selection[1]), skuId: selection[2], bank: META[selection[2]]?.bank } : null);
   g.resize?.();
   g.renderer.render(g.scene, g.camera);
   g.invalidate();
-  if (!placed.length) throw new Error('The kitchen could not load.');
+  if (!placed.length) throw new Error('No cabinet in this layout could be drawn. Your measurements are still here.');
   return true;
+}
+
+function applySplash(g, room) {
+  if (g.splash) {
+    g.scene.remove(g.splash);
+    g.splash.traverse((node) => node.geometry?.dispose?.());
+    g.splash = null;
+  }
+  const color = globalThis.STUDIO_SPLASH_COLOR;
+  if (!color || !room?.walls) return;
+  const group = new THREE.Group();
+  group.name = 'backsplash';
+  const material = new THREE.MeshStandardMaterial({ color, roughness: 0.4 });
+  const bottom = 34.5 * IN;
+  const height = (54 - 34.5) * IN;
+  for (const wall of room.walls) {
+    const mesh = new THREE.Mesh(new THREE.BoxGeometry(wall.length * IN, height, 0.012), material);
+    if (wall.id === 'sink') {
+      mesh.rotation.y = Math.PI / 2;
+      mesh.position.set(0.006, bottom + height / 2, (wall.length * IN) / 2);
+    } else mesh.position.set((wall.length * IN) / 2, bottom + height / 2, 0.006);
+    group.add(mesh);
+  }
+  g.splash = group;
+  g.scene.add(group);
 }
 
 globalThis.STUDIO_ASSEMBLE_SKU = assembleSku;

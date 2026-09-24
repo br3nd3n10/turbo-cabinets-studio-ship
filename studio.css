@@ -87,6 +87,7 @@ body[data-phase="templates"] .gesture-help{visibility:hidden}
 body[data-phase="welcome"] #measure-open,
 body[data-phase="welcome"] #job-download,
 body[data-phase="welcome"] .layout-field,
+body[data-phase="welcome"] #stock,
 body[data-phase="welcome"] #templates,
 body[data-phase="sizing"] #measure-open,
 body[data-phase="sizing"] #job-download,
@@ -103,3 +104,34 @@ body[data-phase="welcome"] main{visibility:hidden}
  body[data-phase="templates"] .options-intro h1,
  body[data-phase="ready"] .options-intro h1{display:block;font-size:28px;max-width:none}
 }
+
+.viewbar{flex-wrap:wrap;height:auto;gap:8px}
+.finish-scope{grid-template-columns:1fr 1fr}
+#plan-view,#elevation-view{position:absolute;inset:0;z-index:4;background:#f6f3ec;overflow:auto;padding:16px}
+.plan-svg{width:100%;height:auto;background:#fff;border:1px solid var(--line);border-radius:6px}
+.plan-tools{display:flex;gap:8px;margin-bottom:10px}
+.plan-tools button,.project-actions button,.file-label{border:1px solid var(--line);border-radius:6px;background:#fff;min-height:32px;padding:0 10px;font-size:12px}
+.plan-tools button[aria-pressed=true]{background:var(--ink);color:#fff}
+.plan-caption{font-size:12px;color:var(--muted);margin:8px 0 0}
+.catalog-tools{display:grid;grid-template-columns:1fr 1fr 80px;gap:8px;margin:8px 0}
+.catalog-tools label,.project-actions,.opening-extra label{font-size:11px;color:var(--muted)}
+.catalog-tools input,.catalog-tools select,#project-name,#ceiling-height,#move-offset{width:100%;margin-top:4px}
+.sku-card:disabled{opacity:.55}
+.inspector-facts{margin:0 0 8px;font-size:13px}
+#lock-cabinet,#handing{margin:8px 8px 0 0}
+#checks,#parts,#projects{grid-column:1/-1}
+#checks h2,#parts h2,#projects h2{font-size:22px;font-weight:500;margin:0 0 8px}
+.check-list{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:6px}
+.check-list button,.part-row,.project-list button{display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:left;width:100%;border:1px solid var(--line);border-radius:8px;background:#fff;padding:10px 12px;font-size:12px}
+.project-actions{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:8px 0}
+.file-label{display:inline-flex;align-items:center}
+.measure-diagram svg{width:100%;height:auto}
+.shape small{display:block;color:var(--muted);font-size:9px}
+.shape:disabled{opacity:.55;cursor:default}
+.opening-extra{grid-column:1/-1;display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+body[data-phase="ready"] main{display:grid;grid-template-columns:minmax(0,1fr) minmax(280px,380px);gap:28px;align-items:start}
+body[data-phase="ready"] .canvas{position:sticky;top:12px}
+body[data-phase="ready"] .options{display:flex;flex-direction:column;gap:18px;margin-top:0;padding-top:0;border-top:0}
+body:not([data-phase="ready"]) #plan-view,body:not([data-phase="ready"]) #elevation-view{display:none!important}
+body[data-draw="plan"] #live-stage,body[data-draw="elevation"] #live-stage,body[data-draw="plan"] .orbit-tools,body[data-draw="elevation"] .orbit-tools{visibility:hidden}
+@media(max-width:800px){body[data-phase="ready"] main{display:flex;flex-direction:column}body[data-phase="ready"] .canvas{position:static}.catalog-tools{grid-template-columns:1fr}}
