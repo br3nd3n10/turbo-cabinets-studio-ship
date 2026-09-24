@@ -32,12 +32,12 @@
 </section>
 <main>
  <section class="canvas" aria-label="Kitchen preview">
-  <div class="viewbar"><div class="segmented" role="group" aria-label="Camera view"><button data-view="kitchen" aria-pressed="true">Kitchen</button><button data-view="detail" aria-pressed="false">Close-up</button></div><div class="viewbar-actions"><button type="button" id="measure-open" class="quiet">Room sizes</button><button id="download" class="quiet" disabled>Save view ↓</button><button type="button" id="job-download" disabled>Save job ↓</button></div></div>
-  <div class="image-stage" aria-busy="true"><div id="live-stage"></div><div id="room-preview" hidden></div><div id="image-stack" role="img" aria-label="Kitchen image" hidden></div><div id="layout-legend" hidden></div><div id="wall-labels" hidden></div><div class="loading" id="loading" role="status">Loading your kitchen…</div><div id="load-error" hidden><p id="error-message"></p><button id="retry">Try again</button></div>
+  <div class="viewbar"><div class="segmented" role="group" aria-label="Drawing"><button type="button" data-draw="plan">Plan</button><button type="button" data-draw="three" aria-pressed="true">3D</button><button type="button" data-draw="elevation">Elevation</button></div><div class="segmented" role="group" aria-label="Camera view"><button data-view="kitchen" aria-pressed="true">Kitchen</button><button data-view="detail" aria-pressed="false">Close-up</button></div><div class="viewbar-actions"><button type="button" id="undo" class="quiet" disabled>Undo</button><button type="button" id="redo" class="quiet" disabled>Redo</button><button type="button" id="measure-open" class="quiet">Room sizes</button><button id="download" class="quiet" disabled>Save view ↓</button><button type="button" id="job-download" disabled>Save job ↓</button></div></div>
+  <div class="image-stage" aria-busy="true"><div id="live-stage"></div><div id="plan-view" hidden></div><div id="elevation-view" hidden></div><div id="room-preview" hidden></div><div id="image-stack" role="img" aria-label="Kitchen image" hidden></div><div id="layout-legend" hidden></div><div id="wall-labels" hidden></div><div class="loading" id="loading" role="status">Loading your kitchen…</div><div id="load-error" hidden><p id="error-message"></p><button id="retry">Try again</button></div>
    <div class="orbit-tools" role="group" aria-label="3D navigation"><button id="zoom-in" aria-label="Zoom in">+</button><button id="zoom-out" aria-label="Zoom out">−</button><button id="reset" aria-label="Reset view">↺</button></div>
 
   </div>
-  <p class="gesture-help">Drag to rotate · Scroll or pinch to zoom · Right-drag to pan</p>
+  <p class="gesture-help" id="select-hint">Click a cabinet to replace it. Drag to rotate. Scroll or pinch to zoom.</p>
   <div class="image-caption"><span id="image-title" aria-live="polite"></span><span id="mode-caption">Interactive 3D</span></div>
  </section>
  <aside class="options" aria-label="Kitchen design options">
@@ -57,6 +57,17 @@
    <button type="button" id="open-door" hidden>Open door</button>
    <button type="button" id="swap-close" class="quiet">Done</button>
   </section>
+  <section id="stock">
+   <div class="eyebrow">Cabinets in stock</div>
+   <h2>Find a cabinet by what it does.</h2>
+   <p class="showroom-lead">These are the cabinets on hand. Click one in the plan, then pick a replacement that fits that spot. A card that cannot fit says why.</p>
+   <div class="catalog-tools">
+    <label>Find a cabinet<input id="catalog-search" type="search" placeholder="Drawer, pantry, B12" autocomplete="off"></label>
+    <label>Use<select id="catalog-role"><option value="all">All</option><option value="drawer">Drawers</option><option value="storage">Storage</option><option value="sink">Sink</option><option value="corner">Corner</option><option value="filler">Fillers</option><option value="upper">Uppers</option></select></label>
+    <label>Width<input id="catalog-width" inputmode="decimal" placeholder="18"></label>
+   </div>
+   <div id="stock-list" class="swap-list"></div>
+  </section>
   <div class="cabinet-controls">
   <div class="layout-field">
    <label for="layout" id="layout-label">Layout</label><select id="layout" aria-labelledby="layout-label"></select>
@@ -71,7 +82,9 @@
    <div id="finishes" class="swatches" role="group" aria-labelledby="finish-label"></div>
    <div class="finish-scope" role="group" aria-label="Where this finish goes">
     <button type="button" id="finish-one" aria-pressed="false">This cabinet</button>
-    <button type="button" id="finish-all" aria-pressed="true">Every cabinet</button>
+    <button type="button" id="finish-uppers" aria-pressed="false">All uppers</button>
+    <button type="button" id="finish-lowers" aria-pressed="true">All lowers</button>
+    <button type="button" id="finish-kitchen" aria-pressed="false">Entire kitchen</button>
    </div>
    <p id="finish-scope-note" class="note"></p>
    <div class="selection-footer"><span id="hardware-name"></span><button class="quiet" id="match-both">Use on both</button></div>
@@ -82,8 +95,28 @@
    <div id="counter-swatches" class="swatches surface-swatches" role="group" aria-labelledby="counter-label"></div>
    <div class="surface-heading"><label id="floor-label">Flooring</label><span id="floor-name"></span></div>
    <div id="floor-swatches" class="swatches surface-swatches" role="group" aria-labelledby="floor-label"></div>
-   <p class="note">Countertops and flooring are styling suggestions, not Turbo Cabinets products. Colors and textures are approximate.</p>
+   <p class="note">Countertops, flooring, wall color, and backsplash are styling suggestions, not Turbo Cabinets products. Pulls follow the finish pairing. Colors are approximate.</p>
+   <div class="surface-heading"><span id="wall-label">Wall color</span></div>
+   <div id="wall-swatches" class="swatches surface-swatches" role="group" aria-labelledby="wall-label"></div>
+   <div class="surface-heading"><span id="splash-label">Backsplash</span></div>
+   <div id="splash-swatches" class="swatches surface-swatches" role="group" aria-labelledby="splash-label"></div>
   </div>
+  <section id="checks" hidden></section>
+  <section id="parts" hidden></section>
+  <section id="projects">
+   <div class="eyebrow">This design</div>
+   <h2>Save on this computer.</h2>
+   <p class="showroom-lead">Save job downloads the room and the layout. Open job brings that file back. Nothing here asks for an account.</p>
+   <label>Name<input id="project-name" value="Kitchen" autocomplete="off"></label>
+   <div class="project-actions">
+    <button type="button" id="project-save">Keep a copy here</button>
+    <button type="button" id="project-duplicate" class="quiet">Duplicate</button>
+    <label class="quiet file-label">Open job<input id="job-open-input" type="file" accept="application/json,.json" hidden></label>
+    <button type="button" id="packet-download" class="quiet">Plan packet</button>
+   </div>
+   <div id="project-list" class="project-list"></div>
+   <p id="project-error" class="measure-error" role="alert" hidden></p>
+  </section>
  </aside>
 </main>
 <dialog id="snapshot" aria-labelledby="snapshot-title"><div class="dialog-top"><h2 id="snapshot-title">Your kitchen.</h2><button id="snapshot-close" class="quiet" aria-label="Close saved view">Close ×</button></div><img id="snapshot-image" alt=""><a id="snapshot-download" class="snapshot-link" download>Download PNG ↓</a></dialog>
@@ -91,6 +124,9 @@
  <div class="dialog-top"><h2 id="measure-title">Your two walls.</h2><button id="measure-close" class="quiet" aria-label="Close room sizes">Close ×</button></div>
  <p class="measure-lead" id="measure-lead">The wall with the stove, then the wall with the sink. Add each opening you taped. Inches are fine.</p>
  <form id="measure-form">
+  <div id="measure-diagram" class="measure-diagram"></div>
+  <label for="ceiling-height">Ceiling (inches)</label>
+  <input id="ceiling-height" name="ceiling-height" inputmode="decimal" autocomplete="off" value="96">
   <div class="shape-pick">
    <p class="shape-label" id="shape-label">Room shape</p>
    <div class="shape-row" id="shape-row" role="radiogroup" aria-labelledby="shape-label"></div>
